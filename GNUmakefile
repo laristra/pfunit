@@ -1,5 +1,8 @@
 .PHONY: tests all
 
+# Add -j below for parallel make in subdirectories.
+MAKEFLAGS = 
+
 TOP_DIR ?=$(shell pwd)
 
 SOURCE_DIR  = $(TOP_DIR)/source
@@ -69,6 +72,7 @@ endif
 
 ifeq ($(MPI),YES)
   MPIF90 ?= mpif90
+	MPIRUN ?= mpirun
   FPPFLAGS += $DUSE_MPI
   CPPFLAGS += -DUSE_MPI
   ifeq ($(MPICH),YES)
@@ -95,8 +99,8 @@ ifeq ($(DEBUG),YES)
 endif
 
 all: 
-	$(MAKE) -C $(SOURCE_DIR) all
-	$(MAKE) -C $(TESTS_DIR) all
+	$(MAKE) $(MAKEFLAGS) -C $(SOURCE_DIR) all
+	$(MAKE) $(MAKEFLAGS) -C $(TESTS_DIR) all
 
 clean:
 	$(MAKE) -C $(SOURCE_DIR) clean
@@ -108,15 +112,18 @@ distclean:
 
 tests: all
 ifeq ($(MPI),YES)
-	mpirun -np 4 ./tests/tests.x
+	$(MPIRUN) -np 4 ./tests/tests.x
 else
 	./tests/tests.x
 endif
 
+develop:
+	mv -f $(TOP_DIR)/include/base-develop.mk $(TOP_DIR)/include/base.mk 
+
 install: libpfunit.a
 INSTALL_DIR ?= $(CURDIR)
 install: 
-	echo Installing pFUnit in $(INSTALL_DIR)
+	@echo Installing pFUnit in $(INSTALL_DIR)
 	mkdir -p $(INSTALL_DIR)/lib
 	mkdir -p $(INSTALL_DIR)/mod
 	mkdir -p $(INSTALL_DIR)/include
@@ -124,7 +131,10 @@ install:
 	cp -p source/lib*     $(INSTALL_DIR)/lib/.
 	cp -p source/*.mod    $(INSTALL_DIR)/mod/.
 	cp include/*        $(INSTALL_DIR)/include/.
+	mv -f $(INSTALL_DIR)/include/base-install.mk $(INSTALL_DIR)/include/base.mk 
 	cp -r bin/* $(INSTALL_DIR)/bin/.
+	@echo For normal usage please set PFUNIT to $(INSTALL_DIR).
+	@echo For example:  export PFUNIT=$(INSTALL_DIR)
 
 export UNAME
 export F90
@@ -143,7 +153,7 @@ export MPI
 export MPIF90
 export LIBMPI
 export COMPILER
-
+export MAKEFLAGS
 
 ifeq ($(DEBUG),YES)
   $(warning Compilation configuration is as follows:)

@@ -1,9 +1,10 @@
 #!/usr/bin/python
+from __future__ import print_function
+from os.path import *
 import re
 
 def cppSetLineAndFile(line, file):
     return "#line " + str(line) + ' "' + file + '"\n'
-    # return "#line " + str(line) + " '" + file + "'\n"
 
 def getSubroutineName(line):
     m = re.match('\s*subroutine\s+(\w*)\s*\\([\w\s,]*\\)\s*$', line, re.IGNORECASE)
@@ -115,12 +116,13 @@ class AtAssert(Action):
     def match(self, line):
         variants = 'Equal|True|False|LessThan|LessThanOrEqual|GreaterThan|GreaterThanOrEqual'
         variants += '|IsMemberOf|Contains|Any|All|NotAll|None|IsPermutationOf'
+        variants += '|ExceptionRaised|SameShape|IsNaN|IsFinite'
         m = re.match('\s*@assert('+variants+')\s*\\((.*\w.*)\\)\s*$', line, re.IGNORECASE)
         return m
 
     def appendSourceLocation(self, fileHandle, fileName, lineNumber):
         fileHandle.write(" & location=SourceLocation( &\n")
-        fileHandle.write(" & '" + fileName + "', &\n")
+        fileHandle.write(" & '" + str(relpath(fileName)) + "', &\n")
         fileHandle.write(" & " + str(lineNumber) + ")")
 
     def action(self, m, line):
@@ -347,13 +349,17 @@ class Parser():
                 self.outputFile.write('#endif ' + test['ifdef'] + '\n')
 
         printTail(self.outputFile, self.suiteName)
-                       
-	
+
+    def final(self):
+        self.inputFile.close()
+        self.outputFile.close()
 
 if __name__ == "__main__":
     import sys
-    print "Processing file", sys.argv[1]
+    print("Processing file", sys.argv[1])
     p = Parser(sys.argv[1], sys.argv[2])
     p.run()
-    print " ... Done.  Results in", sys.argv[2]
+    p.final()
+    print(" ... Done.  Results in", sys.argv[2])
+
 

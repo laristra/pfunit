@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-
+from __future__ import print_function
 # 
 # Generate AssertRealArrays.F90, which provides assertEqual for arrays.
 # 
@@ -7,6 +7,9 @@
 #
 # M. Rilee
 #    Initial: 2013-0304
+# 
+#    2013-0814:  Added default r64 to call from assertEqual_w/o_tol to internal proc.
+#                Added logical to makeExpectedFTypes - but not for prime time.
 # 
 
 ##### utility code #####
@@ -23,9 +26,12 @@ import copy
 ### Restrictions on types and type combinations.
 
 def dr_TolAllowedPrecisions(t,pFound='64') :
-    "returns a list of strings corresponding to the precisions 'tolerance' may take on."
+    "returns a list of strings corresponding to the precisions 'tolerance' may take on. \
+    dr_ refers to 'Difference Report.'  Please see the DifferenceReport routines."
     allowed = []
-    if t == 'integer' :
+    if t == 'logical' :
+        allowed = []
+    elif t == 'integer' :
         allowed = ['32','64']
     elif t == 'real' or 'complex' :
         if pFound == '32' :
@@ -33,14 +39,16 @@ def dr_TolAllowedPrecisions(t,pFound='64') :
         elif pFound == '64' :
             allowed = ['32','64']
         else :
-            # Should not make it here...
-            allowed = []
+            raise ValueError("dr_TolAllowedPrecisions: Bad value of pFound.")
     return allowed
 
 def dr_TolAllowedPrecisions_orig(t,pFound='64') :
-    "returns a list of strings corresponding to the precisions 'tolerance' may take on."
+    "returns a list of strings corresponding to the precisions 'tolerance' may take on. \
+    dr_ refers to 'Difference Report.'  Please see the DifferenceReport routines."
     allowed = []
-    if t == 'integer' :
+    if t == 'logical' :
+        allowed = []
+    elif t == 'integer' :
         allowed = ['64']
     else:
         allowed = ['32','64']
@@ -49,7 +57,9 @@ def dr_TolAllowedPrecisions_orig(t,pFound='64') :
 def allowedPrecisions(t,pFound='64') :
     "returns a list of strings corresponding to the precisions 'expected' may take on."
     allowed = []
-    if t == 'integer' :
+    if t == 'logical' :
+        allowed = []
+    elif t == 'integer' :
         allowed = ['default']
     elif t == 'real' or 'complex' :
         if pFound == '32' :
@@ -61,6 +71,8 @@ def allowedPrecisions(t,pFound='64') :
 def allowedExpected(tFound) :
     # allowed = []
     if tFound in 'integer' :
+        allowed = []
+    elif tFound in 'integer' :
         allowed = ['integer']
     elif tFound == 'real' :
         allowed = ['integer','real']
@@ -237,7 +249,7 @@ def generateASSERTEQUAL(expectedDescr, foundDescr, tolerance):
 
      call """+subroutineName+"""(&
    &   expected, found, &
-   &   tolerance=real(0."""+ifElseString(toleranceKind,', '+toleranceKind,'')+"""), &
+   &   tolerance=real(0."""+ifElseString(toleranceKind,', '+toleranceKind,', '+KINDATTRIBUTE0('real',64))+"""), &
    &   message=message, location=location )
      
    end subroutine
@@ -278,7 +290,12 @@ def makeAssertEqualInternal_type(eDescr,fDescr,tolerance):
     else:
         found_i = 'found'
         fOpts = ""
-        
+
+    if(eRank != 0 or fRank != 0):
+        all_i = "all"
+    else:
+        all_i = ""
+
     expectedDeclaration = \
 "    " + DECLARE('expected',eType,ePrec,0,\
                                   opts=eOpts+', intent(in)') + "\n" + \
@@ -322,6 +339,7 @@ ifElseString(tolerance == 0,\
     foundDeclaration + \
     toleranceDeclaration + """
     
+! mlr 2013-0908 Note:  Perhaps have tolerance_ with a type depending on found... incl. logical or int.
     real(kind=kind(tolerance)) :: tolerance_
 !---    real(kind=kind(expected)) :: expected_
 !---    real(kind=kind(found)) :: found_
@@ -329,6 +347,11 @@ ifElseString(tolerance == 0,\
     logical OK
     integer, dimension(size(fShape)) :: iLocation
     character(len=MAXLEN_SHAPE) :: locationInArray
+
+    ! Return immediately if the two are precisely equal.
+    ! This is necessary to deal with identical infinities, which cannot be
+    ! subtracted.
+    if (""" + all_i + """(expected == found)) return
 
 ! MLR: The following just might work...
     tolerance_ = tolerance
@@ -343,6 +366,7 @@ ifElseString(tolerance == 0,\
     OK = .true.
     
 ! Note:  Comparison occurs here.  Could use isWithinTolerance or other comparison function.
+! mlr 2013-0908 Other comparisons:  tolerance-less integer comparison... logical...
     if( m > 0 )then
        do while ( i < m .and. OK )
          i = i + 1
@@ -486,7 +510,7 @@ ifElseString(fType != 'complex', \
        & appendWithSpace(message, &
        & trim(valuesReport(expected_,found_)) // &
        & '; '//trim(differenceReport(abs(found_ - expected_), tolerance_)) // &
-       & ';  first difference at element '//trim(locationInArray)//'.'), &
+       & unlessScalar(fShape,';  first difference at element '//trim(locationInArray))//'.'), &
        & location = location &
        )
     case (NEQP)
@@ -494,7 +518,7 @@ ifElseString(fType != 'complex', \
        & appendWithSpace(message, &
        & 'NOT '//trim(valuesReport(expected_,found_)) // &
        & '; '//trim(differenceReport(abs(found_ - expected_), tolerance_)) // &
-       & ';  first difference at element '//trim(locationInArray)//'.'), &
+       & unlessScalar(fShape,';  first difference at element '//trim(locationInArray))//'.'), &
        & location = location &
        ) """ + \
 ifElseString(fType != 'complex', \
@@ -505,7 +529,7 @@ ifElseString(fType != 'complex', \
        & trim(valuesReport(expected_,found_, &
        &   ePrefix='expected', &
        &   fPrefix='to be greater than:')) // &       
-       & ';  first difference at element '//trim(locationInArray)//'.'), &
+       & unlessScalar(fShape,';  first difference at element '//trim(locationInArray))//'.'), &
        & location = location &
        )
     case (GEP)
@@ -514,7 +538,7 @@ ifElseString(fType != 'complex', \
        & trim(valuesReport(expected_,found_, &
        &   ePrefix='expected', &
        &   fPrefix='to be greater than or equal to:')) // &       
-       & ';  first difference at element '//trim(locationInArray)//'.'), &
+       & unlessScalar(fShape,';  first difference at element '//trim(locationInArray))//'.'), &
        & location = location &
        )
     case (LTP)
@@ -523,7 +547,7 @@ ifElseString(fType != 'complex', \
        & trim(valuesReport(expected_,found_, &
        &   ePrefix='expected', &
        &   fPrefix='to be less than:')) // &       
-       & ';  first difference at element '//trim(locationInArray)//'.'), &
+       & unlessScalar(fShape,';  first difference at element '//trim(locationInArray))//'.'), &
        & location = location &
        )
     case (LEP)
@@ -532,14 +556,14 @@ ifElseString(fType != 'complex', \
        & trim(valuesReport(expected_,found_, &
        &   ePrefix='expected', &
        &   fPrefix='to be less than or equal to:')) // &       
-       & ';  first difference at element '//trim(locationInArray)//'.'), &
+       & unlessScalar(fShape,';  first difference at element '//trim(locationInArray))//'.'), &
        & location = location &
        ) """,'') + \
 """
     case (RELEQP)    
        call throw( &
        & appendWithSpace(message, &
-       & ';  first difference at element '//trim(locationInArray)//'.'), &
+       & unlessScalar(fShape,';  first difference at element '//trim(locationInArray))//'.'), &
        & location = location &
        )
     case default
@@ -559,6 +583,9 @@ ifElseString(fType != 'complex', \
     
 
 class constraintASSERTEQUAL(routineUnit):
+    "Defines the comparison code as a routineUnit so that it can be \
+    used by the module generation code.  These declarations are used \
+    to construct interface blocks as well as the routines themeselves."
     def __init__(self, expectedDescr, foundDescr, tolerance):
         self.expectedDescr = expectedDescr
         self.foundDescr = foundDescr
@@ -572,6 +599,12 @@ class constraintASSERTEQUAL(routineUnit):
         ## Kluge.  Need to make makeSubroutineNames and load the extra interface entries there.
         self.name1 = self.name+'_WithoutTolerance'
         self.addDeclaration(declaration(self.name1,self.name1))
+
+        ## If you need another kind of code generator, perhaps
+        ## conditioned on eDesc., fDesc., or tol, then that logic
+        ## would go here... E.g. to implement assertEqual(Logical(...))
+        ##
+        ## This next line actually generates the text of the code.
         self.setImplementation(generateASSERTEQUAL(expectedDescr, \
                                                    foundDescr, \
                                                    tolerance ))
@@ -580,6 +613,7 @@ class constraintASSERTEQUAL(routineUnit):
 
 def constructAssertEqualInterfaceBlock(foundFTypes=['real']):
     AssertEqualInterfaceBlock = interfaceBlock('assertEqual')
+    # Construct asserts generates the combinations based on what is passed in here.
     [AssertEqualInterfaceBlock.addRoutineUnit(r) for r in constructASSERTS(foundFTypes=foundFTypes)]
     return AssertEqualInterfaceBlock
 
@@ -613,6 +647,7 @@ def generateVECTOR_NORM(rank,fType='real',precision=64):
   function """+subroutineName+"""(x, norm) result(y)
     """+DECLARE('x',fType,precision,rank,opts=', intent(in)')+"""
     integer :: norm
+! mlr 2013-0908 Maybe we change the range of VECTOR_NORM to include integer & logical.
     real (kind=r64) :: y
 """ + ifElseString(rank == 0, \
 """
@@ -653,61 +688,61 @@ class VECTOR_NORM(routineUnit):
 
 def constructVectorNormInterfaceBlock():
     VectorNormInterface = interfaceBlock('vectorNorm')
-    map(VectorNormInterface.addRoutineUnit, \
-            flattened( \
-                        [[VECTOR_NORM(i,fType=t,precision=p) for i in range(6) \
-                         for p in allowedPrecisions(t) ] \
-                         for t in ['real','complex','integer']] ))
+    list(map(VectorNormInterface.addRoutineUnit,
+             flattened( [[VECTOR_NORM(i,fType=t,precision=p) for i in range(6) \
+                          for p in allowedPrecisions(t) ] \
+                         for t in ['real','complex','integer']
+                     ])))
     return VectorNormInterface
 
 def constructDifferenceReportInterfaceBlock():
     DifferenceReportInterface = interfaceBlock('differenceReport')
-    map(DifferenceReportInterface.addRoutineUnit, \
-        flattened( \
-    [[[makeDifferenceReport_type(t=t,p=p,tol=tol) \
-       for tol in dr_TolAllowedPrecisions(t) ]
-       for p in allowedPrecisions(t) ]
-       for t in ['integer','real','complex'] \
-       ]))
+    list(map(DifferenceReportInterface.addRoutineUnit,
+             flattened( [[[makeDifferenceReport_type(t=t,p=p,tol=tol) \
+                           for tol in dr_TolAllowedPrecisions(t) ]
+                          for p in allowedPrecisions(t) ]
+                         for t in ['integer','real','complex'] \
+                     ])))
     return DifferenceReportInterface
 
 def constructValuesReportInterfaceBlock():
     ValuesReportInterface = interfaceBlock('valuesReport')
-    map(ValuesReportInterface.addRoutineUnit, \
-        flattened( \
-    [[[[makeValuesReport_type(te=te,tf=tf,pe=pe,pf=pf) \
-       for pe in allowedPrecisions(te,pFound=pf) ] \
-       for pf in allowedPrecisions(tf) ] \
-       for te in allowedExpected(tf) ] \
-       for tf in ['integer','real','complex'] \
-        ]))
+    list(map(ValuesReportInterface.addRoutineUnit,
+             flattened( [[[[makeValuesReport_type(te=te,tf=tf,pe=pe,pf=pf) \
+                            for pe in allowedPrecisions(te,pFound=pf) ] \
+                           for pf in allowedPrecisions(tf) ] \
+                          for te in allowedExpected(tf) ] \
+                         for tf in ['integer','real','complex'] \
+                     ])))
     return ValuesReportInterface
 
 # Scalar args?
 def constructAssertEqualInternalInterfaceBlock():
     AssertEqualInternalInterface = interfaceBlock('assertEqual_internal')
-    map(AssertEqualInternalInterface.addRoutineUnit, \
-    [makeAssertEqualInternal_type(a.getExpectedDescription(),\
-                                  a.getFoundDescription(),\
-                                  a.getTolerance()\
-                                  ) \
-    for a in \
-    flattened( \
-               [[[[[[[[AssertRealArrayArgument(te,pe,re,tf,pf,rf,tol) \
-                       for re in [0,1] ] \
-                       for rf in [0,1] ] \
-                       for tol in makeTolerances(pe,pf) ] \
-                       for pe in allowedPrecisions(te,pFound=pf) ] \
-                       for pf in allowedPrecisions(tf) ] \
-                       for te in allowedExpected(tf) ] \
-                     for tf in ['integer','real','complex'] \
-                     ]])])
+    list(map(AssertEqualInternalInterface.addRoutineUnit,
+             [makeAssertEqualInternal_type(a.getExpectedDescription(),
+                                           a.getFoundDescription(),
+                                           a.getTolerance()
+                                       )
+              for a in
+              flattened(
+                  [[[[[[[[AssertRealArrayArgument(te,pe,re,tf,pf,rf,tol)
+                          for re in [0,1] ]
+                         for rf in [0,1] ]
+                        for tol in makeTolerances(pe,pf) ]
+                       for pe in allowedPrecisions(te,pFound=pf) ]
+                      for pf in allowedPrecisions(tf) ]
+                     for te in allowedExpected(tf) ]
+                    for tf in ['integer','real','complex']
+                ]])]))
     return AssertEqualInternalInterface
 
 def isWithinToleranceName(rank,fType='real',precision=64):
     return """isWithinTolerance_"""+str(rank)+"""D"""+"_"+fType+str(precision)
 
 def generateIsWithinTolerance(rank,fType='real',precision=64):
+    "Generate the code for the comparison function. Calls \
+    vectorNorm..."
     subroutineName = isWithinToleranceName(rank,fType=fType,precision=precision)
     dimStr = DIMS(rank)
 
@@ -719,7 +754,7 @@ def generateIsWithinTolerance(rank,fType='real',precision=64):
     elif fType == 'complex' :
         declareKind = '(kind=c'+str(precision)+')'
     else:
-        print 'isWithinToleranceTypeError'
+        print('isWithinToleranceTypeError')
         
     retstr = \
 """
@@ -736,6 +771,7 @@ def generateIsWithinTolerance(rank,fType='real',precision=64):
     return retstr
 
 class IsWithinTolerance(routineUnit):
+    "A routineUnit specialized to the isWithinTolerance comparison function."
     def __init__(self,rank,fType='real',precision=64):
         self.rank = rank
         self.precision = precision
@@ -751,14 +787,16 @@ class IsWithinTolerance(routineUnit):
         return
 
 def constructIsWithinToleranceInterfaceBlock():
+    "For the comparison function, make an interface block and \
+    implementation for inclusion into a module."
     iwt_InterfaceBlock = interfaceBlock('isWithinTolerance')
-    map(iwt_InterfaceBlock.addRoutineUnit, \
-        flattened( \
-        [[IsWithinTolerance(i,fType=t,precision=p)
-         for i in range(6) \
-         for p in allowedPrecisions(t) ] \
-         for t in ['real','complex','integer'] \
-            ]))
+    list(map(iwt_InterfaceBlock.addRoutineUnit,
+             flattened(
+                 [[IsWithinTolerance(i,fType=t,precision=p)
+                   for i in range(6)
+                   for p in allowedPrecisions(t) ]
+                  for t in ['real','complex','integer']
+              ])))
     return iwt_InterfaceBlock
 
 
@@ -849,7 +887,6 @@ def declareUSES():
    use AssertBasic_mod
    use Exception_mod
    use SourceLocation_mod
-!   use ThrowFundamentalTypes_mod, only : throwNonConformable
    use StringConversionUtilities_mod
 """
 
@@ -896,7 +933,10 @@ def makeExpectedFTypes(expectedPrecision,foundFType,foundFTypes=['real']):
     for expected.  Make sure that if we're looking at complex that we
     do not replicate real-real comparisons."""
     retTypes = ['makeExpectedFType::ERROR']
-    if expectedPrecision == 'default':
+    if 'logical' in foundFTypes :
+        if foundFType == 'logical' :
+            retTypes=['logical']        
+    elif expectedPrecision == 'default':
         if not 'complex' in foundFTypes :
             retTypes=['integer']
         else :
@@ -924,6 +964,8 @@ def makeExpectedRanks(foundRank):
     return ranks
 
 def makeTolerances(expectedP, foundP) :
+    "unless default (int) is found, collect all of the tolerances \
+    found in eP and fP and return the maximum"
     tol = -1
     if type(expectedP) is list :
         ep = expectedP
@@ -939,14 +981,15 @@ def makeTolerances(expectedP, foundP) :
     if not 'default' in fp :
         lp = lp + fp
     if lp == [] :
-        print 'tolerance error! setting lp to 64.'
+        # 2013-1022 MLR Fix this!!!
+        # print('tolerance error! setting lp to 64.')
         lp = [64]
     tol = max(lp)
     return [tol]
 
 class AssertRealArrayArgument:
     def __init__(self,eft,ep,er,fft,fp,fr,tol):
-        print ' ',eft,ep,er,fft,fp,fr,tol
+        # print(' ',eft,ep,er,fft,fp,fr,tol)
         self.expectedFType = eft
         self.expectedPrecision = ep
         self.expectedRank = er
@@ -979,7 +1022,9 @@ class AssertRealArrayArgument:
         return self.tolerance
 
 def makeExpectedPrecisions(foundPrecision,foundFType='real'):
-    if foundFType == 'integer' :
+    if foundFType == 'logical' :
+        expectedPrecisions = ['']
+    elif foundFType == 'integer' :
         expectedPrecisions = ['default']
     else :
         expectedPrecisions = ['default',32]
@@ -997,7 +1042,7 @@ def ca_MakeAllowedPrecisions(foundFType) :
             precs = precs + [int(i)]
     return precs
 
-def constructASSERTS(foundFTypes=['real','complex']):
+def constructASSERTS(foundFTypes=['real','complex'],foundRanks = [0,1,2,3,4,5]):
 
     AssertList = []
 
@@ -1013,12 +1058,25 @@ def constructASSERTS(foundFTypes=['real','complex']):
     # + passed in foundFTypes = ['real','complex']
     # + passed in foundFTypes = ['real']
     # foundPrecisions = [32,64] replaced with ca_MakeAllowedPrecisions
-    foundRanks = [0,1,2,3,4,5]
+    # + passed in foundRanks = [0,1,2,3,4,5]
 
 # -> foundFTypes --> adding 'complex'
 
 # THE MAIN LOOP.
 # May need a special case if we don't want to construct a real-real in AssertComplex...
+# Many type-kind-rank combinations are not allowed.  The allowed combinations result from 
+# some options depending on others.  These are implemented in the "make..." functions listed below.
+# The argument foundFType (found Fortran Type) is a key independent variable, which drives the types
+# chosen for other arguments.
+#
+# The variable a contains the arguments for the specialized AssertEqual being generated.
+# The constraintASSERTEQUAL object is the specialized routine, which is then used to
+# construct the module.
+#
+# To change the list of asserts constructed, one can either change the logic implemented in the
+# network of "make..." functions below, or one could add other routineUnits to AssertList, as long
+# as it make sense to include them in the list (and interface block).
+#
     AssertList = \
     [ \
       #test      a \
@@ -1038,6 +1096,15 @@ def constructASSERTS(foundFTypes=['real','complex']):
                        for fft in foundFTypes ] \
                        for fr in foundRanks ] \
                        )]
+
+    ## To insert by hand, one might try the following (sketch...)...
+    ## a = AssertRealArrayArgument('integer','default','1','integer','default','1',0)
+    ## AssertList += [MyConstraintAssertEqual(a.getExpectedDescription(),a.getFoundDescription())]
+    ## Any specialization of routineUnit should work here...
+    ## The code is generated when the routineUnit is instantiated, so that support code would
+    ## need to be available.
+    
+    
     return AssertList
 
 def constructDeclarations(basename=''):
@@ -1063,6 +1130,7 @@ def constructModule(baseName='AssertReal',foundFTypes=['real']):
     m1.addInterfaceBlock(constructDifferenceReportInterfaceBlock())
     m1.addInterfaceBlock(constructValuesReportInterfaceBlock())
     # *in test*
+    # This is where the "list of asserts" is generated.
     m1.addInterfaceBlock(constructAssertEqualInternalInterfaceBlock())
     # add individual routine units
     #    m1.addRoutineUnit(makeThrowDifferentValues()) # arg. provides a routine unit.
@@ -1085,15 +1153,14 @@ def filePreamble(filename):
 
 def makeModuleReal():
     mod = constructModule()
-    # print '\n'.join(mod.generate())
-    # print mod
-    print 'makeModuleReal: opening    '+mod.getFileName()
+    # print('\n'.join(mod.generate()))
+    # print(mod)
+    # print('makeModuleReal: opening    '+mod.getFileName())
     with open(mod.getFileName(),'w') as f:
-        print 'makeModuleReal: writing to '+mod.getFileName()
+        # print('makeModuleReal: writing to '+mod.getFileName())
         f.write(filePreamble(mod.getFileName()))
         f.write('\n'.join(mod.generate()))
-        f.close()
-    print 'makeModuleReal: done'
+    print('makeModuleReal: done')
     return
 
 def makeModuleComplex():
@@ -1102,24 +1169,29 @@ def makeModuleComplex():
     #
     mod = constructModule(baseName='AssertComplex',foundFTypes=['real','complex'])
     # -- mod = constructModule(baseName='AssertComplex',foundFTypes=['complex'])
-    # print 'makeModuleComplex: opening    '+mod.getFileName()
+    # print('makeModuleComplex: opening    '+mod.getFileName())
     with open(mod.getFileName(),'w') as f:
-        # print 'makeModuleComplex: writing to '+mod.getFileName()
+        # print('makeModuleComplex: writing to '+mod.getFileName())
         f.write(filePreamble(mod.getFileName()))
         f.write('\n'.join(mod.generate()))
-        f.close()
-    print 'makeModuleComplex: done'
+    print('makeModuleComplex: done')
     return
 
 def makeModuleInteger():
-#    mod = constructModule(baseName='AssertInteger1',foundFTypes=['integer'])
-    mod = constructModule(baseName='AssertInteger1')
+    mod = constructModule(baseName='AssertInteger1',foundFTypes=['integer'])
     with open(mod.getFileName(),'w') as f:
         f.write(filePreamble(mod.getFileName()))
         f.write('\n'.join(mod.generate()))
-        f.close()
-    print 'makeModuleInteger: done'
+    print('makeModuleInteger: done')
     return
+
+# def makeModuleLogical():
+#     mod = constructModule(baseName='AssertLogical1',foundFTypes=['logical'])
+#     with open(mod.getFileName(),'w') as f:
+#         f.write(filePreamble(mod.getFileName()))
+#         f.write('\n'.join(mod.generate()))
+#     print('makeModuleInteger: done')
+#     return
 
 def main():
     # Make the modules for the different types...
@@ -1127,8 +1199,10 @@ def main():
     makeModuleReal()
     #++
     makeModuleComplex()
-    #?
+    #? The following requires testing.
     makeModuleInteger()
+    #? Just started...
+    #- makeModuleLogical()
     return
 
 if __name__ == "__main__":

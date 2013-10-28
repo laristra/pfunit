@@ -43,8 +43,8 @@ module pFUnit_mod
    public :: MpiTestMethod, newMpiTestMethod
 #endif
 
-   public :: assertEqual
    public :: assertTrue, assertFalse
+   public :: assertEqual
    public :: assertAny
    public :: assertAll
    public :: assertNone
@@ -53,6 +53,8 @@ module pFUnit_mod
    public :: assertGreaterThan, assertGreaterThanOrEqual
    public :: assertExceptionRaised
    public :: assertSameShape
+   public :: assertIsNan
+   public :: assertIsFinite
 
    public :: throw, catchAny, catch, anyExceptions
 

@@ -91,8 +91,10 @@ contains
          & appendWithSpace(msg, &
          & trim(valuesReport(good, bad)) // &
          & '; ' // trim(differenceReport(abs(bad - good), 0.)) // &
-         & ';  first difference at element  [1].') &
-         & )
+         & '.' ) )
+
+!mlr-         & ';  first difference at element  [1].') &
+!mlr-         & )
     
     deallocate(msg)
 
@@ -505,8 +507,8 @@ contains
     !mlr maybe move this to a larger scope...
     integer, parameter :: MAXLEN_SHAPE = 80
     character(len=MAXLEN_SHAPE) :: locationInArray
-    integer :: i1, i2, i3, i4, i5
-    integer :: n1, n2, n3, n4, n5
+    integer :: i1, i2, i3
+    integer :: n1, n2, n3
 
     character(len=:), allocatable :: msg
 
@@ -859,7 +861,7 @@ contains
 
     !mlr maybe move this to a larger scope...
     integer, parameter :: MAXLEN_SHAPE = 80
-    character(len=MAXLEN_SHAPE) :: locationInArray
+!    character(len=MAXLEN_SHAPE) :: locationInArray
 
     real(kind=r32) :: tolerance32
     complex(kind=r32) :: bad32
@@ -882,8 +884,10 @@ contains
          & appendWithSpace(msg, &
          & trim(valuesReport(good, bad32)) // &
          & '; ' // trim(differenceReport(abs(bad32 - good), tolerance32)) // &
-         & ';  first difference at element  [1].') &
-         & )
+         & '.' ))
+
+!mlr-         & ';  first difference at element  [
+!mlr-         & )
 
     deallocate(msg)
 
