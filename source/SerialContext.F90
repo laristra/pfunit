@@ -8,25 +8,23 @@ module SerialContext_mod
    public :: THE_SERIAL_CONTEXT
 
    type, extends(ParallelContext) :: SerialContext
-      integer :: placeholder
    contains
       procedure :: getNumProcesses
       procedure :: processRank
       procedure :: sum
-      procedure :: gatherString
-      procedure :: gatherInteger
-      procedure :: gatherLogical
+      procedure :: gatherString => gatherString2
+      procedure :: gatherInteger => gatherInteger2
+      procedure :: gatherLogical => gatherLogical2
 !TODO - NAG does not yet support FINAL keyword
 !!$$      final :: clean
    end type SerialContext
 
-   type (SerialContext), parameter :: THE_SERIAL_CONTEXT = SerialContext(1)
+   type (SerialContext), parameter :: THE_SERIAL_CONTEXT = SerialContext()
 
 contains
 
    function newSerialContext() result(context)
       type (SerialContext) :: context
-      context%placeholder = 1
    end function newSerialContext
 
    integer function getNumProcesses(this)
@@ -49,30 +47,30 @@ contains
 
    end function sum
 
-   subroutine gatherString(this, values, list)
+   subroutine gatherString2(this, values, list)
       class (SerialContext), intent(in) :: this
       character(len=*), intent(in) :: values(:)
       character(len=*), intent(out) :: list(:)
 
       list = values
-   end subroutine gatherString
+   end subroutine gatherString2
 
-   subroutine gatherInteger(this, values, list)
+   subroutine gatherInteger2(this, values, list)
       class (SerialContext), intent(in) :: this
       integer, intent(in) :: values(:)
       integer, intent(out) :: list(:)
 
       list = values
 
-   end subroutine gatherInteger
+   end subroutine gatherInteger2
 
-   subroutine gatherLogical(this, values, list)
+   subroutine gatherLogical2(this, values, list)
       class (SerialContext), intent(in) :: this
       logical, intent(in) :: values(:)
       logical, intent(out) :: list(:)
 
       list = values
-   end subroutine gatherLogical
+   end subroutine gatherLogical2
 
    subroutine clean(this)
       type (SerialContext), intent(inout) :: this

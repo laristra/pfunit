@@ -38,7 +38,7 @@ module PrivateException_mod
       procedure :: getNumExceptions
 
       procedure :: catchAny
-      procedure :: gather
+      procedure :: gather2 ! PGI does not like "gather" here.
       procedure :: catch_any
       procedure :: catch_message
       generic :: catch => catch_any
@@ -155,7 +155,7 @@ contains
 
    end function catchAny
 
-   subroutine gather(this, context)
+   subroutine gather2(this, context)
       use ParallelContext_mod
       class (ExceptionList), intent(inOut) :: this
       class (ParallelContext), intent(in) :: context
@@ -192,7 +192,7 @@ contains
 
       end if
 
-   end subroutine gather
+    end subroutine gather2
 
    logical function noExceptions(this)
       class (ExceptionList), intent(inOut) :: this
@@ -427,7 +427,7 @@ contains
    subroutine gatherExceptions(context)
       use ParallelContext_mod
       class (ParallelContext), intent(in) :: context
-      call globalExceptionList%gather(context)
+      call globalExceptionList%gather2(context)
    end subroutine gatherExceptions
 
    subroutine clearAll()

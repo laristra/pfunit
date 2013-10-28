@@ -8,7 +8,7 @@ F90FLAGS += -O0 -g -traceback -Mbounds -Mchkfpstk -Mchkptr -Mchkstk -Mallocatabl
 F90FLAGS += -DSTRINGIFY_SIMPLE
 FPPFLAGS += -DPGI
 F90_HAS_CPP=YES
-CPPFLAGS += -DSTRINGIFY_SIMPLE -DPGI -Mpreprocess
+CPPFLAGS += -DSTRINGIFY_SIMPLE -DPGI -Mpreprocess -D__PGI__
 
 ifeq ($(DSO),YES)
   FFLAGS +=-PIC

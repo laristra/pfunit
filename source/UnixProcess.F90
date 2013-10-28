@@ -103,7 +103,6 @@ contains
 
    logical function isActive(this)
       class (UnixProcess), intent(in) :: this
-      
       integer, parameter :: MAX_LEN = 40
       character(len=MAX_LEN) :: command
       integer :: stat
@@ -212,6 +211,15 @@ contains
       exitStat_ = system(trim(command))
       if (present(exitStat)) exitStat = exitStat_
 
+   end subroutine execute_command_line
+#endif
+
+#ifdef __PGI__
+   subroutine execute_command_line(command, exitStat)
+     integer, external :: system
+      character(len=*),intent(in) :: command
+      integer, intent(out) :: exitStat
+      exitStat = system(trim(command))
    end subroutine execute_command_line
 #endif
    

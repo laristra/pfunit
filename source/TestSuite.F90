@@ -16,9 +16,9 @@ module TestSuite_mod
       character(MAX_LENGTH_NAME) :: name
       type (TestReference), allocatable :: tests(:)
    contains
-      procedure :: getName 
+      procedure :: getName => getName2
       procedure :: setName
-      procedure :: countTestCases
+      procedure :: countTestCases => countTestCases2
       procedure :: run
       procedure :: addTest
       procedure :: getNumTests
@@ -48,6 +48,12 @@ contains
 
    end function newTestSuite_named
 
+   function getName2(this) result(name)
+      class (TestSuite), intent(in) :: this
+      character(MAX_LENGTH_NAME) :: name
+      name = trim(this%name)
+   end function getName2
+
    recursive subroutine copy(this, b)
       class (TestSuite), intent(out) :: this
       type (TestSuite), intent(in) :: b
@@ -64,16 +70,16 @@ contains
 
    end subroutine copy
 
-   recursive integer function countTestCases(this)
+   recursive integer function countTestCases2(this) result(numCases)
       class (TestSuite), intent(in) :: this
       integer :: i
       
-      countTestCases = 0
+      numCases = 0
       do i = 1, this%getNumTests()
-         countTestCases = countTestCases + this%tests(i)%pTest%countTestCases()
+         numCases = numCases + this%tests(i)%pTest%countTestCases()
       end do
   
-   end function countTestCases
+    end function countTestCases2
 
    recursive subroutine run(this, tstResult, context)
       use ParallelContext_mod
@@ -129,12 +135,6 @@ contains
       getNumTests = size(this%tests)
    end function getNumTests
 
-   function getName(this) result(name)
-      class (TestSuite), intent(in) :: this
-      character(MAX_LENGTH_NAME) :: name
-      name = trim(this%name)
-   end function getName
-
    subroutine setName(this, name)
       class (TestSuite), intent(inout) :: this
       character(len=*),intent(in) :: name
@@ -153,7 +153,7 @@ contains
       integer :: i, j
       integer :: n, m
 
-      allocate(testList(this%countTestCases()))
+      allocate(testList(this%countTestCases2()))
 
       n = 1
       do i = 1, size(this%tests)
@@ -192,7 +192,8 @@ contains
 
       integer :: n
 
-      allocate(testList(this%countTestCases()))
+      n = countTestCases2(this)
+      allocate(testList(n))
       
       n = 0
       call accumulateTestCases(this, testList, n)
@@ -200,15 +201,17 @@ contains
    contains
       
       recursive subroutine accumulateTestCases(this, testList, n)
-         class (TestSuite), intent(in) :: this
+         class (TestSuite), target, intent(in) :: this
          type (TestCaseReference), intent(inout) :: testList(:)
          integer, intent(inout) :: n
          
          integer :: i, j
+         class (Test), pointer :: ref
 
          do i = 1, size(this%tests)
 
-            associate (t => this%tests(i)%pTest)
+           ref => this%tests(i)%pTest
+            associate (t => ref)
 
                select type (t)
                class is (TestCase)

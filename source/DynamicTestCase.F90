@@ -8,16 +8,18 @@ module DynamicTestCase_mod
    public :: delete
 
    type, extends(TestCase) :: DynamicTestCase
-      procedure(testMethod), pointer :: testMethod => null()
+      procedure(testMethod2), pointer :: testMethod => null()
    contains
       procedure :: runMethod
    end type DynamicTestCase
    
    abstract interface
-      subroutine testmethod(this)
+
+      subroutine testmethod2(this)
          import DynamicTestCase
          class (DynamicTestCase), intent(inOut) :: this
-       end subroutine testMethod
+      end subroutine testmethod2
+
    end interface
    
    interface delete
@@ -49,7 +51,7 @@ contains
 
    subroutine runMethod(this)
       class (DynamicTestCase), intent(inout) :: this
-      call this%testMethod
+      call this%testMethod()
    end subroutine runMethod
 
 end module DynamicTestCase_mod

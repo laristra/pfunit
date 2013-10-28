@@ -9,7 +9,7 @@ module Test_mod
       integer :: placeholder
    contains
       procedure(countTestCases), deferred :: countTestCases
-      procedure(run), deferred :: run
+      procedure(run2), deferred :: run
    end type Test
 
    abstract interface
@@ -19,14 +19,14 @@ module Test_mod
          class (Test), intent(in) :: this
       end function countTestCases
 
-      recursive subroutine run(this, tstResult, context)
+      recursive subroutine run2(this, tstResult, context)
          use TestResult_mod
          use ParallelContext_mod
          import Test
          class (Test), intent(inout) :: this
          class (TestResult), intent(inout) :: tstResult
          class (ParallelContext), intent(in) :: context
-      end subroutine run
+       end subroutine run2
 
    end interface
 

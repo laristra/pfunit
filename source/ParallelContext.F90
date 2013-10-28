@@ -7,6 +7,7 @@ module ParallelContext_mod
    public :: ParallelContext
 
    type, abstract :: ParallelContext
+     private
    contains
       procedure :: isActive
       procedure :: isRootProcess

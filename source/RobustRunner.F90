@@ -24,7 +24,7 @@ module RobustRunner_mod
       type (ResultPrinter) :: printer
       type (UnixProcess) :: remoteProcess
    contains
-      procedure :: run
+      procedure :: runRunner => run2
       procedure :: runWithResult
       procedure :: startTest
       procedure :: endTest
@@ -72,7 +72,7 @@ contains
       class (TestCaseMonitor), intent(inout) :: this
    end subroutine runMethod
 
-   subroutine run(this, aTest, context)
+   subroutine run2(this, aTest, context)
       use Test_mod
       use TestSuite_mod
       use TestResult_mod
@@ -86,7 +86,7 @@ contains
       result = this%createTestResult()
       call this%runWithResult(aTest, context, result)
 
-   end subroutine run
+   end subroutine run2
 
    subroutine runWithResult(this, aTest, context, result)
       use Test_mod

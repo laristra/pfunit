@@ -7,11 +7,14 @@ module BaseTestRunner_mod
 
    type, abstract, extends(TestListener) :: BaseTestRunner
    contains
-      procedure(run), deferred :: run
+      procedure(run2), deferred :: runRunner
    end type BaseTestRunner
 
    abstract interface
-      subroutine run(this, aTest, context)
+
+      ! Bizarre workaround for PGI 13.9.0  this unused method
+      ! avoids "Incompatible PASS argument in run"
+      subroutine foo(this, aTest, context)
          use Test_mod
          use ParallelContext_mod
          import BaseTestRunner
@@ -19,27 +22,19 @@ module BaseTestRunner_mod
          class (BaseTestRunner), intent(inout) :: this
          class (Test), intent(inout) :: aTest
          class (ParallelContext), intent(in) :: context
-      end subroutine run
+      end subroutine foo
       
-!!$      subroutine startTest(this, testName)
-!!$         import BaseTestRunner
-!!$         class (BaseTestRunner), intent(inout) :: this
-!!$         character(len=*), intent(in) :: testName
-!!$      end subroutine startTest
-!!$
-!!$      subroutine endTest(this, testName)
-!!$         import BaseTestRunner
-!!$         class (BaseTestRunner), intent(inout) :: this
-!!$         character(len=*), intent(in) :: testName
-!!$      end subroutine endTest
-!!$
-!!$      subroutine addFailure(this, testName, exceptions)
-!!$         import BaseTestRunner
-!!$         use Exception_mod
-!!$         class (BaseTestRunner), intent(inout) :: this
-!!$         character(len=*), intent(in) :: testName
-!!$         type (Exception), intent(in) :: exceptions(:)
-!!$      end subroutine addFailure
+
+      subroutine run2(this, aTest, context)
+         use Test_mod
+         use ParallelContext_mod
+         import BaseTestRunner
+         
+         class (BaseTestRunner), intent(inout) :: this
+         class (Test), intent(inout) :: aTest
+         class (ParallelContext), intent(in) :: context
+      end subroutine run2
+      
    end interface
 
 end module BaseTestRunner_mod
