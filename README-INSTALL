@@ -1,7 +1,7 @@
 
-PFUNIT INSTALLATION AND BASIC USAGE GUIDE
+PFUNIT VERSION 2.0 INSTALLATION AND BASIC USAGE GUIDE
 
-VERSION 2013-0830 M. Rilee mike@rilee.net
+VERSION 2013-1227 M. Rilee mike@rilee.net
 
 TABLE OF CONTENTS
 
@@ -24,16 +24,20 @@ TABLE OF CONTENTS
 
 The development work for pFUnit has mostly been carried out on a
 mixture of systems, including high-end computers, Apple Mac OSX, and
-linux-based systems.  Full use of the system depends on the following
+linux-based systems.  A preliminary Windows/CYGWIN port has been
+contributed by a user. Full use of the system depends on the following
 being available.
 
-Fortran 2003+ (Tested with Intel 13.1+, NAG 5.3, GCC 4.8.1.)
+Fortran 2003+ (Tested with Intel 13.1+, NAG 5.3, GCC 4.8.3, 4.9.0, IBM's XLF)
 The Message Passing Interface (MPI)
+OPENMP
 GNU Make
 Python
 
-The system is routinely tested with GNU, Intel, and NAG fortran
-compilers and OpenMPI, as well as nightly regression testing.
+Doxygen is used to generate documentation (see http://www.doxygen.org).
+
+The system is routinely undergoes regression testing, including with GNU,
+Intel, and NAG fortran compilers and OpenMPI.
 
 2. OBTAINING PFUNIT
 
@@ -83,6 +87,8 @@ pFUnit.
 
 bin - Executables used to construct and perform unit tests.
 
+documentation - Provides information about the pFUnit.
+
 include - Files to be included into makefiles or source, including use
 code.
 
@@ -91,6 +97,8 @@ README-INSTALL - This file.
 source - Source code and scripts of the pFUnit library and framework.
 
 tests - Source code for unit testing pFUnit itself.
+
+tools - Tools used to help develop, build, and install pFUnit.
 
 4. CONFIGURATION
 
@@ -120,6 +128,16 @@ MPIRUN
 $ # e.g.
 $ export MPIRUN=/some.path/mpirun
 
+DOXYGEN - To generate documentation, set DOXYGEN to the desired
+executable.  NOTE: Doxygen Version 1.8.5 does not respect CamelCase
+names from Fortran source code by currently converting all to
+lowercase.  It does this to get HTML links correct for references in
+the source code that also do not respect the CamelCase convention.
+The Fortran standard specifies case insensitivity.  Doxygen 1.7.x
+seems to better respect CamelCase.
+$ #.e.g.
+$ export DOXYGEN=/opt/local/share/doxygen/doxygen-1.7.6/bin/doxygen
+
 5.1 BUILDING PFUNIT FOR TESTING SERIAL CODES (Non-MPI)
 
 1. Change to the directory into which pFUnit has been placed.
@@ -135,7 +153,7 @@ Re-execute "make tests" to check again.
 4. At this point the pFUnit object library is in the source directory,
 along with a large number of Fortran module files.
 
-5.2 BUILDING THE PFUNIT FOR TESTING PARALLEL CODES (MPI)
+5.2 BUILDING PFUNIT FOR TESTING PARALLEL CODES (MPI)
 
 To build pFUnit for unit testing MPI-based codes, be sure that the
 environment is properly set up for the MPI implementation you are
@@ -145,7 +163,7 @@ batch job under PBS. The steps for building pFUnit start out the same
 as for the serial case above, but add MPI=YES to the environment to
 switch on MPI support.  The MPI-based unit tests for pFUnit itself
 will run automatically.  Again, occasionally a spurious (runtime)
-error may appear on the first execution.  
+error may appear on the first execution.
 
 3. Execute make as follows.
 $ make tests MPI=YES 
@@ -155,7 +173,20 @@ directory, along with a large number of Fortran module files.
 
 Also, one may get some harmless "no symbols" warnings when the pFUnit library is constructed.
 
-5.3 CLEANING
+5.3 BUILDING PFUNIT FOR TESTING PARALLEL CODES (OPENMP)
+
+Initial (limited) support for OPENMP has been implemented.  At this
+writing, a basic functionality is available.
+
+The process for building pFUnit for testing OPENMP-based codes is
+similar to that for other paradigms.
+
+3. To compile for OPENMP support execute make as follows.
+$ make tests OPENMP=YES 
+
+4. At this point the OPENMP-enabled pFUnit is ready to be installed.
+
+5.4 CLEANING
 
 To clean the pFUnit build directory for the space or to rebuild there
 are two options.
@@ -168,6 +199,26 @@ $ make distclean
 
 3. Some directories support a "make src_clean" to remove intermediate
 products in subdirectories.
+
+5.5 BUILDING THE DOCUMENTATION
+
+A start at documentation for pFUnit is in the documentation directory.
+Doxygen is our primary documentation tool.  To make the documentation,
+which will be generated in the documentation directory, please invoke
+the following.
+
+$ make documentation
+
+Or to make a reference manual:
+
+$ make documentation/pFUnit2-ReferenceManual.pdf
+
+To select a specific version of Doxygen, please set the DOXYGEN
+environment variable as in the Configuration section above.  You 
+may wish to do this if your code uses CamelCase names as current
+versions of Doxygen (1.8.5) do not respect this convention for
+Fortran.
+
 
 6.1 INSTALLATION - SERIAL
 
@@ -213,7 +264,13 @@ $ make
 This will compile and run a set of parallel examples that includes
 intentional failures.
 
-6.3 INSTALLATION - DEFAULT DIRECTORY
+6.3 INSTALLATION - OPENMP
+
+At this time the OPENMP version of pFUnit can be installed in the same
+way as for the serial or MPI-parallel codes.  OPENMP support, tests,
+and examples are limited as of this writing.
+
+6.4 INSTALLATION - DEFAULT DIRECTORY
 
 If INSTALL_DIR is not set, "make install" will attempt to install
 pFUnit into the top build directory.  This will create directories
@@ -287,13 +344,28 @@ in the makefile to keep them from being deleted. For example:
 The MacPorts package management system is a convenient way to install
 and maintain many packages, including gcc which includes gfortran.
 
+9.4.2 Windows/CYGWIN
+
+User contributed code for Windows/CYGWIN has been added, but is
+currently not tested and supported by the pFUnit team. At this
+writing, 2013-1031, serial Examples and MPI are not known to be
+supported.  Please contact us if you wish to either contribute or
+otherwise discuss this port.
+
+
 10. ACKNOWLEDGMENTS
 
 Thanks to the follwing for their review and comments: B. Van Aartsen, T. Clune.
 
+Windows/CYGWIN contributions from E. Lezar.
+
+Other acknowledgments:  S.P. Santos (NCAR), M. Hambley.
+
 11. KNOWN INSTALLATIONS/VERSIONS
 
 12. NOTES
+
+* For modifications and feature requests please see "sourceforge.net/projects/pfunit".
 
 TBD
 
@@ -305,6 +377,8 @@ Make "hello world" examples for section 7 above.
 
 14. REVISIONS TO THIS DOCUMENT
 
+2013-1107. Minor edits. MLR
+2013-1031. Added user contributed code for Windows/CYGWIN & IBM's XLF. MLR
 2013-0830-1359. Minor corrections and added MPIF90 to 6.2. MLR
 2013-0806-1345. Corrected git reference. Was using old URL.  MLR
 2013-0805. Initial draft. MLR

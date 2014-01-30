@@ -1,7 +1,33 @@
+!-------------------------------------------------------------------------------
+! NASA/GSFC, Software Integration & Visualization Office, Code 610.3
+!-------------------------------------------------------------------------------
+!  MODULE: TestRunner
+!
+!> @brief
+!! <BriefDescription>
+!!
+!! @author
+!! Tom Clune,  NASA/GSFC 
+!!
+!! @date
+!! 07 Nov 2013
+!! 
+!! @note <A note here.>
+!! <Or starting here...>
+!
+! REVISION HISTORY:
+!
+! 07 Nov 2013 - Added the prologue for the compliance with Doxygen. 
+!
+!-------------------------------------------------------------------------------
+
 module TestRunner_mod
+   use Test_mod
    use BaseTestRunner_mod
    use TestListener_mod
+   use BaseTestRunner_mod
    use ResultPrinter_mod
+   use DebugListener_mod
    implicit none
    private
 
@@ -9,7 +35,9 @@ module TestRunner_mod
    public :: newTestRunner
 
    type, extends(BaseTestRunner) :: TestRunner
+!!$      private
       type (ResultPrinter) :: printer
+      type (DebugListener) :: debugger
    contains
       procedure :: run
       procedure :: createTestResult
@@ -35,38 +63,41 @@ contains
       integer, intent(in) :: unit
       type (TestRunner) :: runner
       runner%printer = newResultPrinter(unit)
+      runner%debugger = DebugListener(unit)
    end function newTestRunner_unit
 
    function createTestResult(this) result(tstResult)
       use TestResult_mod
       class (TestRunner), intent(inout) :: this
       type (TestResult) :: tstResult
+
       tstResult = newTestResult()
+      call tstResult%addListener(this%printer)
+      if (this%debug()) call tstResult%addListener(this%debugger)
+
     end function createTestResult
 
-    subroutine run(this, aTest, context)
+    function run(this, aTest, context) result(result)
       use Test_mod
       use TestResult_mod
       use ParallelContext_mod
       use DebugListener_mod
+
+      type (TestResult) :: result
       class (TestRunner), intent(inout) :: this
       class (Test), intent(inout) :: aTest
       class (ParallelContext), intent(in) :: context
 
-      type (TestResult) :: result
       integer :: clockStart
       integer :: clockStop
       integer :: clockRate
       real :: runTime
 
-      type (DebugListener) :: debug
 
       call system_clock(clockStart)
+
       result = this%createTestResult()
-      call result%addListener(this%printer)
-#ifdef DEBUG_ON
-      call result%addListener(debug)
-#endif
+
       call aTest%run(result, context)
       call system_clock(clockStop, clockRate)
       runTime = real(clockStop - clockStart) / clockRate
@@ -74,7 +105,7 @@ contains
          call this%printer%print(result, runTime)
       end if
 
-   end subroutine run
+   end function run
 
     subroutine startTest(this, testName)
        class (TestRunner), intent(inout) :: this

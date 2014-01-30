@@ -1,3 +1,25 @@
+!-------------------------------------------------------------------------------
+! NASA/GSFC, Software Integration & Visualization Office, Code 610.3
+!-------------------------------------------------------------------------------
+!  MODULE: UnixProcess
+!
+!> @brief
+!! <BriefDescription>
+!!
+!! @author
+!! Tom Clune,  NASA/GSFC 
+!!
+!! @date
+!! 07 Nov 2013
+!! 
+!! @note <A note here.>
+!! <Or starting here...>
+!
+! REVISION HISTORY:
+!
+! 07 Nov 2013 - Added the prologue for the compliance with Doxygen. 
+!
+!-------------------------------------------------------------------------------
 ! This module encapsulates the ability to issue background system commands
 ! Unix pipes are used under the hood soo that results from such commands
 ! can be returned to the program for further processing.
@@ -105,11 +127,11 @@ contains
       class (UnixProcess), intent(in) :: this
       integer, parameter :: MAX_LEN = 40
       character(len=MAX_LEN) :: command
-      integer :: stat
+      integer :: stat, cstat
 
       if (this%pid >=0) then
-         write(command, '("kill -0 ",i0," >& /dev/null")') this%pid
-         call execute_command_line(command, exitStat=stat)
+         write(command, '("kill -0 ",i0," > /dev/null 2>&1")') this%pid
+         call execute_command_line(command, exitStat=stat, cmdStat=cstat)
          isActive = (stat == 0)
       else
          isActive = .false.
@@ -122,13 +144,13 @@ contains
 
       integer, parameter :: MAX_LEN = 120
       character(len=MAX_LEN) :: command
-      integer :: stat
+      integer :: stat, cstat
 
       if (this%pid >=0) then
          write(command,'(a,i0,a)') "kill -15 `ps -ef 2> /dev/null | awk '$3 == ",this%pid," {print $2}'` > /dev/null 2>&1" 
-         call execute_command_line(command, exitStat=stat)
+         call execute_command_line(command, exitStat=stat, cmdStat=cstat)
          write(command, '("kill -15 ",i0," > /dev/null 2>&1; ")') this%pid
-         call execute_command_line(command, exitStat=stat)
+         call execute_command_line(command, exitStat=stat, cmdStat=cstat)
       end if
 
    end subroutine terminate
@@ -201,15 +223,17 @@ contains
 
 
 #ifdef Intel
-   subroutine execute_command_line(command, exitStat)
+   subroutine execute_command_line(command, exitStat, cmdStat)
       use ifport
       character(len=*), intent(in) :: command
       integer, optional, intent(out) :: exitStat
+      integer, optional, intent(out) :: cmdStat
 
       integer :: exitStat_
 
       exitStat_ = system(trim(command))
       if (present(exitStat)) exitStat = exitStat_
+      if (present(cmdStat)) cmdStat = 0
 
    end subroutine execute_command_line
 #endif

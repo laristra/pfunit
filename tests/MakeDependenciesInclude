@@ -39,9 +39,13 @@ for i in *.F90; do
 done; 
 
 cat ${tmpFile} | grep -iv selfTests.o > ${outFile}; 
-   echo -e "\nifeq (\$(MPI),YES)\n" >> ${outFile}; 
+   echo -e "\nifeq (\$(USEMPI),YES)\n" >> ${outFile}; 
    cat ${tmpFile} | grep -i selfTests.o >> ${outFile}; 
    echo -e "\nelse\n" >> ${outFile}; 
 
 cat ${tmpFile} | grep -i selfTests.o | sed 's/[_a-zA-Z0-9]*[m|M]pi[._a-zA-Z0-9]*//g' >> ${outFile}; 
    echo -e "\nendif\n" >> ${outFile}
+
+# The following converts the occurrences of .o in ${outFile} to $(OBJ_EXT)
+sed -i -e 's&\.o&$(OBJ_EXT)&g' ${outFile}
+\rm -f ${outFile}-e

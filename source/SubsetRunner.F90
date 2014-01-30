@@ -1,3 +1,25 @@
+!-------------------------------------------------------------------------------
+! NASA/GSFC, Software Integration & Visualization Office, Code 610.3
+!-------------------------------------------------------------------------------
+!  MODULE: SubsetRunner
+!
+!> @brief
+!! <BriefDescription>
+!!
+!! @author
+!! Tom Clune,  NASA/GSFC 
+!!
+!! @date
+!! 07 Nov 2013
+!! 
+!! @note <A note here.>
+!! <Or starting here...>
+!
+! REVISION HISTORY:
+!
+! 07 Nov 2013 - Added the prologue for the compliance with Doxygen. 
+!
+!-------------------------------------------------------------------------------
 !------------------------------------------------------------------------
 ! The purpose of this class is to support detection of SUT errors that
 ! crash the framework.  The RobustRunner (better name?) class launches
@@ -14,6 +36,7 @@
 ! -----------------------------------------------------------------------
 
 module SubsetRunner_mod
+   use Test_mod
    use BaseTestRunner_mod
    implicit none
    private
@@ -60,7 +83,7 @@ contains
 
    end function newSubsetRunner
 
-   subroutine run(this, aTest, context)
+   function run(this, aTest, context) result(result)
       use, intrinsic :: iso_fortran_env, only: OUTPUT_UNIT
       use Test_mod
       use ParallelContext_mod
@@ -68,12 +91,12 @@ contains
       use TestResult_mod
       use TestSuite_mod
 
+      type (TestResult) :: result
       class (SubsetRunner), intent(inout) :: this
       class (Test), intent(inout) :: aTest
       class (ParallelContext), intent(in) :: context
 
       type (TestCaseReference), allocatable :: testCaseList(:)
-      type (TestResult) :: result
 
       integer :: i
 
@@ -105,7 +128,7 @@ contains
 
       if (this%unit /= OUTPUT_UNIT) close(this%unit)
 
-   end subroutine run
+   end function run
 
    subroutine addFailure(this, testName, exceptions)
       use Exception_mod

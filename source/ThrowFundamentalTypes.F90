@@ -1,3 +1,25 @@
+!-------------------------------------------------------------------------------
+! NASA/GSFC, Software Integration & Visualization Office, Code 610.3
+!-------------------------------------------------------------------------------
+!  MODULE: ThrowFundamentalTypes
+!
+!> @brief
+!! <BriefDescription>
+!!
+!! @author
+!! Tom Clune,  NASA/GSFC 
+!!
+!! @date
+!! 07 Nov 2013
+!! 
+!! @note <A note here.>
+!! <Or starting here...>
+!
+! REVISION HISTORY:
+!
+! 07 Nov 2013 - Added the prologue for the compliance with Doxygen. 
+!
+!-------------------------------------------------------------------------------
 
 module ThrowFundamentalTypes_mod
 
@@ -155,11 +177,11 @@ contains
     iLocationSize = size(iLocation)
 
     if (iLocationSize .eq. 0) then
-       fmt = '("[" i0 "]")'       
+       fmt = '("[", i0, "]")'
     else if (iLocationSize .eq. 1) then
-       fmt = '("[" i0 "]")'
+       fmt = '("[", i0, "]")'
     else
-       write(fmt,*) '("["',iLocationSize-1,'(i0,", ") i0 "]")'
+       write(fmt,*) '("[",',iLocationSize-1,'(i0,", "), i0, "]")'
     end if
 
   end function locationFormat

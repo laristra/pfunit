@@ -1,9 +1,32 @@
+!-------------------------------------------------------------------------------
+! NASA/GSFC, Software Integration & Visualization Office, Code 610.3
+!-------------------------------------------------------------------------------
+!  MODULE: RobustRunner
+!
+!> @brief
+!! <BriefDescription>
+!!
+!! @author
+!! Tom Clune,  NASA/GSFC 
+!!
+!! @date
+!! 07 Nov 2013
+!! 
+!! @note <A note here.>
+!! <Or starting here...>
+!
+! REVISION HISTORY:
+!
+! 07 Nov 2013 - Added the prologue for the compliance with Doxygen. 
+!
+!-------------------------------------------------------------------------------
 module RobustRunner_mod
    use Test_mod
    use TestCase_mod
    use BaseTestRunner_mod
    use UnixProcess_mod
    use ResultPrinter_mod
+   use DebugListener_mod
    implicit none
    private
 
@@ -22,6 +45,7 @@ module RobustRunner_mod
 #endif
       integer :: numSkip
       type (ResultPrinter) :: printer
+      type (DebugListener) :: debugger
       type (UnixProcess) :: remoteProcess
    contains
       procedure :: runRunner => run2
@@ -66,27 +90,28 @@ contains
       runner%remoteRunCommand = trim(remoteRunCommand)
       runner%numSkip = 0
       runner%printer = newResultPrinter(unit)
+      runner%debugger = DebugListener(unit)
    end function newRobustRunner_unit
 
    subroutine runMethod(this)
       class (TestCaseMonitor), intent(inout) :: this
    end subroutine runMethod
 
-   subroutine run2(this, aTest, context)
+   function run(this, aTest, context) result(result)
       use Test_mod
       use TestSuite_mod
       use TestResult_mod
       use ParallelContext_mod
+
+      type (TestResult) :: result
       class (RobustRunner), intent(inout) :: this
       class (Test), intent(inout) :: aTest
       class (ParallelContext), intent(in) :: context
 
-      type (TestResult) :: result
-
       result = this%createTestResult()
       call this%runWithResult(aTest, context, result)
 
-   end subroutine run2
+   end function run
 
    subroutine runWithResult(this, aTest, context, result)
       use Test_mod
@@ -108,7 +133,6 @@ contains
 
       call system_clock(clockStart)
 
-      call result%addListener(this%printer)
       call result%addListener( this ) ! - monitoring
 
       select type (aTest)
@@ -225,7 +249,11 @@ contains
       use TestResult_mod
       class (RobustRunner), intent(inout) :: this
       type (TestResult) :: tstResult
+
       tstResult = newTestResult()
+      call tstResult%addListener(this%printer)
+      if (this%debug()) call tstResult%addListener(this%debugger)
+
     end function createTestResult
 
 end module RobustRunner_mod

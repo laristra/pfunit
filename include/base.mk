@@ -4,21 +4,25 @@ INCLUDE_DIR =$(TOP)/include
 LIB_DIR     =$(TOP)/source
 MOD_DIR     =$(TOP)/source
 
+# Set the required file extensions.
+include $(INCLUDE_DIR)/extensions.mk
+
+# Include the compiler-specific options.
 include $(INCLUDE_DIR)/$(COMPILER).mk
 
 F90FLAGS += $I$(INCLUDE_DIR)
 
-ifneq ($(MPI),YES)
+ifeq ($(USEMPI),)
   FC=$(F90)
 else
-  FC=$(MPIF90)
+  override FC=$(MPIF90)
 endif
 
 ifeq ($(F90_HAS_CPP),YES)
-%.o: %.F90
+%$(OBJ_EXT): %.F90
 	$(FC) -c $(F90FLAGS) $(CPPFLAGS) -o $@ $<
 else
-%.o:%.F90
+%$(OBJ_EXT):%.F90
 	@$(CPP) $(CPPFLAGS) $(CPPFLAGS) $< > $*_cpp.F90
 	$(FC) -c $(F90FLAGS)  $*_cpp.F90 -o $@
 	$(RM) $*_cpp.F90
@@ -27,7 +31,7 @@ endif
 .PHONY: clean distclean
 
 clean:
-	$(RM) *.o *.mod *.i90 *~ *_cpp.F90 *.tmp
+	-$(RM) *$(OBJ_EXT) *.mod *.i90 *~ *_cpp.F90 *.tmp
 
 distclean: clean
-	$(RM) *.a *.x dependencies.inc
+	-$(RM) *$(LIB_EXT) *$(EXE_EXT) dependencies.inc

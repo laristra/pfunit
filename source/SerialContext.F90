@@ -1,3 +1,25 @@
+!-------------------------------------------------------------------------------
+! NASA/GSFC, Software Integration & Visualization Office, Code 610.3
+!-------------------------------------------------------------------------------
+!  MODULE: SerialContext
+!
+!> @brief
+!! <BriefDescription>
+!!
+!! @author
+!! Tom Clune,  NASA/GSFC 
+!!
+!! @date
+!! 07 Nov 2013
+!! 
+!! @note <A note here.>
+!! <Or starting here...>
+!
+! REVISION HISTORY:
+!
+! 07 Nov 2013 - Added the prologue for the compliance with Doxygen. 
+!
+!-------------------------------------------------------------------------------
 module SerialContext_mod
    use ParallelContext_mod
    implicit none
@@ -71,6 +93,12 @@ contains
 
       list = values
    end subroutine gatherLogical2
+
+   logical function allReduce(this, q) result(anyQ)
+      class (SerialContext), intent(in) :: this
+      logical, intent(in) :: q
+      anyQ = q
+   end function allReduce
 
    subroutine clean(this)
       type (SerialContext), intent(inout) :: this

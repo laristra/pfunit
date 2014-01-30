@@ -1,3 +1,25 @@
+!-------------------------------------------------------------------------------
+! NASA/GSFC, Software Integration & Visualization Office, Code 610.3
+!-------------------------------------------------------------------------------
+!  MODULE: ResultPrinter
+!
+!> @brief
+!! <BriefDescription>
+!!
+!! @author
+!! Tom Clune,  NASA/GSFC 
+!!
+!! @date
+!! 07 Nov 2013
+!! 
+!! @note <A note here.>
+!! <Or starting here...>
+!
+! REVISION HISTORY:
+!
+! 07 Nov 2013 - Added the prologue for the compliance with Doxygen. 
+!
+!-------------------------------------------------------------------------------
 module ResultPrinter_mod
    use Exception_mod
    use TestListener_mod
@@ -97,8 +119,8 @@ contains
       real, intent(in) :: runTime
 
       call this%printHeader(runTime)
-      call this%printFailures('Error', result%errors)
-      call this%printFailures('Failure', result%failures)
+      call this%printFailures('Error', result%getErrors())
+      call this%printFailures('Failure', result%getFailures())
       call this%printFooter(result)
 
    end subroutine print

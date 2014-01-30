@@ -1,3 +1,25 @@
+!-------------------------------------------------------------------------------
+! NASA/GSFC, Software Integration & Visualization Office, Code 610.3
+!-------------------------------------------------------------------------------
+!  MODULE: AssertBasic
+!
+!> @brief
+!! <BriefDescription>
+!!
+!! @author
+!! Tom Clune,  NASA/GSFC 
+!!
+!! @date
+!! 07 Nov 2013
+!! 
+!! @note <A note here.>
+!! <Or starting here...>
+!
+! REVISION HISTORY:
+!
+! 07 Nov 2013 - Added the prologue for the compliance with Doxygen. 
+!
+!-------------------------------------------------------------------------------
 module AssertBasic_mod
    use Exception_mod
    use SourceLocation_mod
@@ -246,14 +268,14 @@ contains
 
    subroutine assertIsNaN_single(x, message, location)
       use Params_mod, only: r32
-#ifndef GNU
+#ifndef __GFORTRAN__
       use, intrinsic :: ieee_arithmetic, only: ieee_is_nan
 #endif
       real(kind=r32), intent(in) :: x
       character(len=*), optional, intent(in) :: message
       type (SourceLocation), optional, intent(in) :: location
       
-#ifdef GNU
+#ifdef __GFORTRAN__
       call assertTrue(isNaN(x), message, location)
 #else
       call assertTrue(ieee_is_nan(x), message, location)

@@ -1,3 +1,25 @@
+!-------------------------------------------------------------------------------
+! NASA/GSFC, Software Integration & Visualization Office, Code 610.3
+!-------------------------------------------------------------------------------
+!  MODULE: TestListener
+!
+!> @brief
+!! <BriefDescription>
+!!
+!! @author
+!! Tom Clune,  NASA/GSFC 
+!!
+!! @date
+!! 07 Nov 2013
+!! 
+!! @note <A note here.>
+!! <Or starting here...>
+!
+! REVISION HISTORY:
+!
+! 07 Nov 2013 - Added the prologue for the compliance with Doxygen. 
+!
+!-------------------------------------------------------------------------------
 module TestListener_mod
    implicit none
    private
@@ -6,7 +28,7 @@ module TestListener_mod
    public :: ListenerPointer
 
    type, abstract :: TestListener
-      integer :: placeholder
+      private
    contains
      procedure(addFailure2), deferred :: addFailure
      procedure(startTest2), deferred :: startTest

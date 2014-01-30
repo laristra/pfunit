@@ -1,3 +1,25 @@
+!-------------------------------------------------------------------------------
+! NASA/GSFC, Software Integration & Visualization Office, Code 610.3
+!-------------------------------------------------------------------------------
+!  MODULE: PrivateException
+!
+!> @brief
+!! <BriefDescription>
+!!
+!! @author
+!! Tom Clune,  NASA/GSFC 
+!!
+!! @date
+!! 07 Nov 2013
+!! 
+!! @note <A note here.>
+!! <Or starting here...>
+!
+! REVISION HISTORY:
+!
+! 07 Nov 2013 - Added the prologue for the compliance with Doxygen. 
+!
+!-------------------------------------------------------------------------------
 module PrivateException_mod
    use SourceLocation_mod
    implicit none
@@ -362,31 +384,60 @@ contains
 
 
    integer function getNumExceptions_local() result(numExceptions)
+
+      if (.not. allocated(globalExceptionList%exceptions)) then
+         call initializeGlobalExceptionList()
+      end if
+
       numExceptions = globalExceptionList%getNumExceptions()
    end function getNumExceptions_local
 
    subroutine throw_message(message, location)
       character(len=*), intent(in) :: message
       type (SourceLocation), optional, intent(in) :: location
+
+      !$omp critical
+      if (.not. allocated(globalExceptionList%exceptions)) then
+         call initializeGlobalExceptionList()
+      end if
+
       call globalExceptionList%throw(message, location)
+      !$omp end critical
+
    end subroutine throw_message
 
    subroutine throw_messageWithLocation(message, location)
       use SourceLocation_mod
       character(len=*), intent(in) :: message
       type (SourceLocation), intent(in) :: location
+
+      !$omp critical
+      if (.not. allocated(globalExceptionList%exceptions)) then
+         call initializeGlobalExceptionList()
+      end if
+
       call globalExceptionList%throw(message, location)
+      !$omp end critical
    end subroutine throw_messageWithLocation
 
    function catchAny(preserve) result(anException)
       logical, optional, intent(in) :: preserve
       type (Exception) :: anException
 
+      if (.not. allocated(globalExceptionList%exceptions)) then
+         call initializeGlobalExceptionList()
+      end if
+
       anException = globalExceptionList%catchAny(preserve)
    end function catchAny
 
    logical function catch_any(preserve)
       logical, optional, intent(in) :: preserve
+
+      if (.not. allocated(globalExceptionList%exceptions)) then
+         call initializeGlobalExceptionList()
+      end if
+
       catch_any = globalExceptionList%catch(preserve)
    end function catch_any
 
@@ -394,20 +445,39 @@ contains
       character(len=*), intent(in) :: message
       logical, optional, intent(in) :: preserve
 
+      if (.not. allocated(globalExceptionList%exceptions)) then
+         call initializeGlobalExceptionList()
+      end if
+
       catch_message = globalExceptionList%catch(message, preserve)
    end function catch_message
 
    function getExceptions() result(exceptions)
       type (Exception), allocatable :: exceptions(:)
+
+      if (.not. allocated(globalExceptionList%exceptions)) then
+         call initializeGlobalExceptionList()
+      end if
+
       exceptions = globalExceptionList%getExceptions()
    end function getExceptions
 
    logical function noExceptions()
+
+      if (.not. allocated(globalExceptionList%exceptions)) then
+         call initializeGlobalExceptionList()
+      end if
+
       noExceptions = globalExceptionList%noExceptions()
    end function noExceptions
 
-   logical function anyExceptions_local()
-      anyExceptions_local = globalExceptionList%anyExceptions()
+   logical function anyExceptions_local() result(anyExceptions)
+
+      if (.not. allocated(globalExceptionList%exceptions)) then
+         call initializeGlobalExceptionList()
+      end if
+
+      anyExceptions = globalExceptionList%anyExceptions()
    end function anyExceptions_local
 
    logical function anyErrors()
