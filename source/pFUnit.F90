@@ -24,6 +24,8 @@ module pFUnit_mod
    use SourceLocation_mod
    use Exception_mod
    use ParallelException_mod
+
+   use MockRepository_mod
    use Expectation_mod
    use Test_mod
    use TestSuite_mod
@@ -107,6 +109,7 @@ module pFUnit_mod
 
    public :: throw, catchNext, catch, anyExceptions
 
+   public :: MockRepositoryPointer
    public :: Expectation, Subject, Predicate
    public :: wasCalled, wasNotCalled, wasCalledOnce
 
@@ -181,5 +184,7 @@ contains
    end if
 
    end subroutine finalize
+
+! For globalize...
 
 end module pFUnit_mod

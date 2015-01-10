@@ -23,6 +23,7 @@
 !-------------------------------------------------------------------------------
 module TestResult_mod
    use AbstractTestResult_mod
+   use MockRepository_mod, only : MockRepositoryPointer
    use SurrogateTestCase_mod
    use TestListener_mod
    use TestFailure_mod
@@ -202,9 +203,14 @@ contains
 
       integer :: i
 
+      !? 2014-0929-1232-53-UTC MLR
+      ! For testing sometimes endTest is called w/o first a call to startTest.
+      ! Maybe we should make a call to startTest before endTest mandatory...
+
       do i = 1, size(this%listeners)
          call this%listeners(i)%pListener%endTest(aTest%getName())
       end do
+
    end subroutine endTest
 
    integer function runCount(this)

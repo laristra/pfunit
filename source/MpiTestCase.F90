@@ -79,9 +79,13 @@ contains
    recursive subroutine runBare(this)
       use Exception_mod
       use ParallelException_mod
+      use MockRepository_mod
       class (MpiTestCase), intent(inout) :: this
 
       logical :: discard
+
+      ! TODO:  Make consistent with MPI.
+      MockRepositoryPointer => newMockRepository()
 
       ! create subcommunicator
       this%context = this%parentContext%makeSubcontext(this%getNumProcessesRequested())
@@ -104,7 +108,9 @@ contains
 
       call gather(this%parentContext)
 
-   end subroutine runBare
+      call MockRepositoryPointer%delete()
+
+    end subroutine runBare
 
    integer function getMpiCommunicator(this) result(mpiCommunicator)
       class (MpiTestCase), intent(in) :: this

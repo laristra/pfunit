@@ -161,9 +161,10 @@ contains
 
          do j= 1, size(aFailedTest%exceptions)
             locationString = aFailedTest%exceptions(j)%location%toString()
-
+! mlr -- can there be a mismatch between the name and the errors?
             write(this%unit,*) label,' in: ', trim(aFailedTest%testName)
             write(this%unit,*) '  Location: ', trim(locationString)
+! mlr 
             write(this%unit,'(a,1x,a)') aFailedTest%exceptions(j)%getMessage()
             write(this%unit,*)' '
          end do

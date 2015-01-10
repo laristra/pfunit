@@ -27,6 +27,7 @@ module TestCase_mod
    use SurrogateTestCase_mod
    use TestResult_mod
    use Test_mod
+   use MockRepository_mod, only : MockRepositoryPointer, newMockRepository
 
    private
 
@@ -128,11 +129,27 @@ contains
       use Exception_mod, only: noExceptions
       class (TestCase), intent(inout) :: this
 
+! Maybe replace with call to subroutine to hide the
+! MockRepositoryPointer ref.  Also, maybe rework mocker using
+! decorator (wrapper) pattern on user tests via preprocessor.
+
+!mock
+      !print *,20000,this%getName()
+      MockRepositoryPointer => newMockRepository()
+      !print *,20001
+
       call this%setUp()
       if (noExceptions()) then
          call this%runMethod()
          call this%tearDown()
       end if
+
+! Maybe replace with call to subroutine to hide the MockRepositoryPointer ref.
+!
+!mock
+      !print *,21000
+      call MockRepositoryPointer%delete()
+      !print *,21001
 
    end subroutine runBare
 

@@ -132,7 +132,15 @@ contains
 
          else ! have some output to process
 
-! MLR Need to check on length of line.
+            ! MLR Need to check on length of line.
+
+            if (len(line) < 22) then
+               ! duplicate throw below
+               call timerProcess%terminate()
+               call this%process%terminate()
+               call throw('ERROR: unexpected message length: '//trim(line))
+               return
+            end if
 
             if (line == ('ended: ' // trim(this%getName()))) then
 

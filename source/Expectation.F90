@@ -5,12 +5,14 @@
 
 module Expectation_mod
   use StringConversionUtilities_mod, only : MAXLEN_STRING
+  use Predicate_mod
   implicit none
   private
 
-  public :: Expectation, newExpectation
+  public :: Expectation, newExpectation, ExpectationThat
   public :: Predicate, newPredicate
-  public :: Subject, newSubject, newSubjectNameOnly
+!  public :: Subject, newSubject, newSubjectNameOnly
+  public :: Subject, newSubject
   public :: wasCalled, wasNotCalled, wasCalledOnce
 
   type :: Subject
@@ -24,10 +26,11 @@ module Expectation_mod
      end subroutine subVoid
   end interface
 
+  interface newSubject
+     module procedure newSubject_
+     module procedure newSubjectNameOnly_
+  end interface newSubject
 
-  type :: Predicate
-     character(len=MAXLEN_STRING) :: name
-  end type Predicate
 
 ! TDD
   type(Predicate), parameter :: wasCalled     = Predicate('wasCalled')
@@ -51,28 +54,22 @@ module Expectation_mod
   end type Expectation
 
 contains
-
-  type(Predicate) function newPredicate(name) result(pred_)
-    character(*) :: name
-    pred_%name = name
-  end function newPredicate
-
-  type(Subject) function newSubject(name,sub) result(subj_)
+  type(Subject) function newSubject_(name,sub) result(subj_)
     character(*) :: name
     procedure(subVoid), pointer :: sub
     subj_%name = name
     subj_%ptr => sub
     ! maybe include a reference too
-  end function newSubject
+  end function newSubject_
 
-  type(Subject) function newSubjectNameOnly(name) result(subj_)
+  type(Subject) function newSubjectNameOnly_(name) result(subj_)
     character(*) :: name
     procedure(subVoid), pointer :: sub
     subj_%name = name
     ! subj_%ptr => sub ! Maybe nullify...
     nullify(subj_%ptr)
     ! maybe include a reference too
-  end function newSubjectNameOnly
+  end function newSubjectNameOnly_
 
 !  type(Subject) function newSubject(name) result(subj_)
 
@@ -82,5 +79,11 @@ contains
     exp_%subj = subj
     exp_%pred = pred
   end function newExpectation
+
+  type(Expectation) function ExpectationThat(subject,pred_) result(expectation)
+    character(*) :: subject
+    type(Predicate) :: pred_
+    expectation = newExpectation(newSubject(subject),pred_)
+  end function ExpectationThat
 
 end module Expectation_mod

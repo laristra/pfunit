@@ -49,8 +49,8 @@ contains
       use Test_BasicOpenMP_mod, only: testBasicOpenMpSuite => suite  ! (8)
 
       use Test_MockCall_mod, only: testMockCallSuite => suite      ! (11)
-      use Test_MockRepository_mod, only: testMockRepositorySuite => suite      ! (11)
-      use Test_XmlPrinter_mod, only: testXmlPrinterSuite => suite
+      use Test_MockRepository_mod, only: testMockRepositorySuite => suite      ! (12)
+      use Test_XmlPrinter_mod, only: testXmlPrinterSuite => suite ! (13)
 
 #ifdef BUILD_ROBUST
       use Test_RobustRunner_mod, only: testRobustRunnerSuite => suite
@@ -96,7 +96,6 @@ contains
       ADD(assertBasicSuite)
       ADD(assertSuite)
       ADD(assertIntegerSuite)
-
       ADD(assertRealSuite)
       ADD(assertComplexSuite)
 
