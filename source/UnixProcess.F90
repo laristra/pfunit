@@ -70,8 +70,8 @@ contains
 !      uze UnixPipeInterfaces_mod, only: getLine
       use UnixPipeInterfaces_mod, only: popen
       use StringConversionUtilities_mod, only: nullTerminate
+      use Exception_mod, only: throw
 !      uze, intrinsic :: iso_c_binding, only: C_PTR
-      use Assert_mod
       type (UnixProcess) :: process
       character(len=*), intent(in) :: command
       logical, optional, intent(in) :: runInBackground
@@ -91,7 +91,10 @@ contains
       mode = nullTerminate('r')
 
       process%file = popen(fullCommand, mode)
-      call assertTrue(c_associated(process%file))
+      if (.not. c_associated(process%file)) then
+         call throw('Unsuccessful call to popen.')
+         return
+      end if
 
       if (present(runInBackground)) then
          if (runInBackground) then
