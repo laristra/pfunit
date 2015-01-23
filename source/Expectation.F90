@@ -5,7 +5,8 @@
 
 module Expectation_mod
   use StringConversionUtilities_mod, only : MAXLEN_STRING
-  use Predicate_mod
+  use EventPolyWrapVector_mod
+  use Predicates_mod
   implicit none
   private
 
@@ -13,7 +14,7 @@ module Expectation_mod
   public :: Predicate, newPredicate
 !  public :: Subject, newSubject, newSubjectNameOnly
   public :: Subject, newSubject
-  public :: wasCalled, wasNotCalled, wasCalledOnce
+!  public :: wasCalled, wasNotCalled, wasCalledOnce
 
   type :: Subject
      ! mlr todo allocatable strings
@@ -33,9 +34,10 @@ module Expectation_mod
 
 
 ! TDD
-  type(Predicate), parameter :: wasCalled     = Predicate('wasCalled')
-  type(Predicate), parameter :: wasNotCalled  = Predicate('wasNotCalled')
-  type(Predicate), parameter :: wasCalledOnce = Predicate('wasCalledOnce')
+!  type(Predicate), parameter :: wasCalled     = Predicate('wasCalled')
+!  type(Predicate), parameter :: wasNotCalled  = Predicate('wasNotCalled')
+!  type(Predicate), parameter :: wasCalledOnce = Predicate('wasCalledOnce')
+!
 ! todo:  
 !    checking expectation sub called with right value (important for sci.)
 !    syntax for distinguishing arguments -- (position/keys)
@@ -50,7 +52,9 @@ module Expectation_mod
 
   type :: Expectation
      type(Subject) :: subj
-     type(Predicate) :: pred
+     class(Predicate), pointer :: pred
+   contains
+     procedure :: verify
   end type Expectation
 
 contains
@@ -75,15 +79,26 @@ contains
 
   type(Expectation) function newExpectation(subj, pred) result(exp_)
     type(Subject), intent(in) :: subj
-    type(Predicate), intent(in) :: pred
+    class(Predicate), intent(in), target :: pred
     exp_%subj = subj
-    exp_%pred = pred
+    ! Pointer or copy?
+    exp_%pred => pred
   end function newExpectation
 
   type(Expectation) function ExpectationThat(subject,pred_) result(expectation)
     character(*) :: subject
-    type(Predicate) :: pred_
+    class(Predicate) :: pred_
     expectation = newExpectation(newSubject(subject),pred_)
   end function ExpectationThat
+
+  ! How to make abstract?
+  logical function verify(this,eventList) result(ok)
+    use Exception_mod
+    class (Expectation), intent(inout) :: this
+    type (EventPolyWrapVector), intent(in) :: eventList
+    !call throw('Expectation%verify not implemented.')
+    !ok = .false.  ! preliminary tdd
+    ok = this%pred%verify(this%subj%name,eventList)
+  end function verify
 
 end module Expectation_mod

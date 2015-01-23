@@ -125,6 +125,7 @@ module Test_MockRepository_mod
    use SourceLocation_mod
    use Exception_mod, only : NULL_MESSAGE, catch, anyExceptions
    use Expectation_mod
+   use Predicates_mod
 
 !   use Assert_mod, only: assertEqual
 
@@ -187,7 +188,7 @@ contains
      call MockRepositoryPointer%add( &
           & ExpectationThat( &
           &   'MockSUT_InternalDependency%method1', &
-          &   wasCalled))
+          &   nWasCalled()))
      call internalProcedure() ! verification is when object is final-ized
      call MockRepositoryPointer%verify()
 
@@ -214,9 +215,10 @@ contains
      use Exception_mod, only : anyExceptions
 
      !print *,3000
-     call MockRepositoryPointer%addExpectationThat( &
-          & 'MockSUT_InternalDependency%method1', &
-          & wasCalled)
+     call MockRepositoryPointer%add( &
+          & ExpectationThat( &
+          &   'MockSUT_InternalDependency%method1', &
+          &   nWasCalled()))
      call internalProcedure() ! verification is when object is final-ized
 
      call MockRepositoryPointer%verify()
@@ -241,9 +243,10 @@ contains
    subroutine testExpectMethod_CalledDifferentMethod()
 
      !print *,4000
-     call MockRepositoryPointer%addExpectationThat( &
-          & 'MockSUT_InternalDependency%method1', &
-          & wasCalled)
+     call MockRepositoryPointer%add( &
+          & ExpectationThat( &
+          &   'MockSUT_InternalDependency%method1', &
+          &   nWasCalled()))
       call internalProcedure() ! verification is when object is final-ized
 
       call MockRepositoryPointer%verify()
@@ -282,9 +285,10 @@ contains
 
      type (MockSUT_InternalDependency) :: SUT_withMockedMethod
 
-     call MockRepositoryPointer%addExpectationThat( &
-          & 'MockSUT_InternalDependency%method4', &
-          & wasCalled)
+     call MockRepositoryPointer%add( &
+          & ExpectationThat( &
+          &   'MockSUT_InternalDependency%method4', &
+          &   nWasCalled()))
 
      !!! TOD !!!
      !call MockRepositoryPointer%addExpectationThat( &
@@ -311,9 +315,10 @@ contains
 
      type (MockSUT_InternalDependency) :: SUT_withMockedMethod
 
-     call MockRepositoryPointer%addExpectationThat( &
-          & 'MockSUT_InternalDependency%method4', &
-          & wasCalled)
+     call MockRepositoryPointer%add( &
+          & ExpectationThat( &
+          &   'MockSUT_InternalDependency%method4', &
+          &   nWasCalled()))
 
      !!! TODO !!!
      !call MockRepositoryPointer%addExpectationThat( &

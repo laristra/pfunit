@@ -7,15 +7,31 @@ module Event_mod
   public :: Event, newEvent
 
   type :: Event
-     character(len=MAXLEN_STRING) :: name
+     character(len=:), allocatable :: name
+     character(len=:), allocatable :: message
+   contains
+     procedure :: getName
+     procedure :: getMessage
   end type Event
 
 contains
 
-  type(Event) function newEvent(name) result(event_)
-    character(*) :: name
-    event_%name = name
+  type(Event) function newEvent(name,message) result(event_)
+    character(len=*) :: name, message
+    event_%name = name; event_%message = message
   end function newEvent
+
+  function getName(this) result(name_)
+    class (Event), intent(in) :: this
+    character(len=:), allocatable :: name_
+    name_ = this%name
+  end function getName
+
+  function getMessage(this) result(msg_)
+    class (Event), intent(in) :: this
+    character(len=:), allocatable :: msg_
+    msg_ = this%message
+  end function getMessage
 
 end module Event_mod
   
