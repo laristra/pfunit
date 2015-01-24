@@ -8,7 +8,8 @@ module PredicateWasCalled_mod
   implicit none
   private
 
-  public :: WasCalled, nWasCalled
+  public :: WasCalled
+!  public :: WasCalled, nWasCalled
 
   type, extends(Predicate) :: WasCalled
    contains
@@ -16,13 +17,17 @@ module PredicateWasCalled_mod
      procedure :: verify => verify_WasCalled
   end type WasCalled
 
-  !!!! Or do we invoke the predicate from the subject?
+!!!! Or do we invoke the predicate from the subject?
+
+  interface WasCalled
+     module procedure newWasCalled
+  end interface WasCalled
 
 contains
 
-  type(WasCalled) function nWasCalled() result(pred_)
+  type(WasCalled) function newWasCalled() result(pred_)
     pred_%name = 'wasCalled'
-  end function nWasCalled
+  end function newWasCalled
 
 !  logical function verifyAgainst(this,subj_) result(ok)
 !    class(WasCalled), intent(inout) :: this

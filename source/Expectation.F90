@@ -11,7 +11,8 @@ module Expectation_mod
   private
 
   public :: Expectation, newExpectation, ExpectationThat
-  public :: Predicate, newPredicate
+  public :: Predicate
+  ! , newPredicate
 !  public :: Subject, newSubject, newSubjectNameOnly
   public :: Subject, newSubject
 !  public :: wasCalled, wasNotCalled, wasCalledOnce
@@ -77,18 +78,18 @@ contains
 
 !  type(Subject) function newSubject(name) result(subj_)
 
-  type(Expectation) function newExpectation(subj, pred) result(exp_)
+  type(Expectation) function newExpectation(subj, pred) result(expect)
     type(Subject), intent(in) :: subj
     class(Predicate), intent(in), target :: pred
-    exp_%subj = subj
+    expect%subj = subj
     ! Pointer or copy?
-    exp_%pred => pred
+    expect%pred => pred
   end function newExpectation
 
-  type(Expectation) function ExpectationThat(subject,pred_) result(expectation)
+  type(Expectation) function ExpectationThat(subject,pred) result(expect)
     character(*) :: subject
-    class(Predicate) :: pred_
-    expectation = newExpectation(newSubject(subject),pred_)
+    class(Predicate) :: pred
+    expect = newExpectation(newSubject(subject),pred)
   end function ExpectationThat
 
   ! How to make abstract?

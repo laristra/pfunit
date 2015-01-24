@@ -35,6 +35,17 @@ list(APPEND srcs DebugListener.F90)
 
 list(APPEND srcs DynamicTestCase.F90)
 list(APPEND srcs Exception.F90)
+
+list(APPEND srcs EventPolyWrap.F90)
+list(APPEND srcs EventPolyWrapVector.F90)
+list(APPEND srcs ExpectationPolyWrap.F90)
+list(APPEND srcs ExpectationPolyWrapVector.F90)
+
+list(APPEND srcs Predicates.F90)
+list(APPEND srcs Predicate.F90)
+list(APPEND srcs PredicateWasCalled.F90)
+
+list(APPEND srcs Event.F90)
 list(APPEND srcs Expectation.F90)
 list(APPEND srcs MockCall.F90)
 list(APPEND srcs MockRepository.F90)

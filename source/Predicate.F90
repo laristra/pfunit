@@ -6,7 +6,8 @@ module Predicate_mod
   implicit none
   private
 
-  public :: Predicate, newPredicate
+  public :: Predicate
+  ! , newPredicate
 
   type, abstract :: Predicate
      character(len=MAXLEN_STRING) :: name
@@ -26,10 +27,10 @@ module Predicate_mod
 
 contains
 
-  type(Predicate) function newPredicate(name) result(pred_)
-    character(*) :: name
-    pred_%name = name
-  end function newPredicate
+!?  type(Predicate) function newPredicate(name) result(pred_)
+!?    character(*) :: name
+!?    pred_%name = name
+!?  end function newPredicate
 
 !  logical function verifyAgainst(this,subj_,eventList) result(ok)
 !    class(Predicate), intent(inout) :: this

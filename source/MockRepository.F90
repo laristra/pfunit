@@ -24,7 +24,8 @@ module MockRepository_mod
    use Expectation_mod, only : Expectation, newExpectation, ExpectationThat
 !   use Expectation_mod, only : Subject, newSubject, newSubjectNameOnly
    use Expectation_mod, only : Subject, newSubject
-   use Expectation_mod, only : Predicate, newPredicate
+   use Expectation_mod, only : Predicate
+   ! , newPredicate
    !   use Expectation_mod, only : wasCalled, wasNotCalled, wasCalledOnce
 
    use Event_mod

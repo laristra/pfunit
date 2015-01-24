@@ -188,7 +188,7 @@ contains
      call MockRepositoryPointer%add( &
           & ExpectationThat( &
           &   'MockSUT_InternalDependency%method1', &
-          &   nWasCalled()))
+          &   WasCalled()))
      call internalProcedure() ! verification is when object is final-ized
      call MockRepositoryPointer%verify()
 
@@ -218,7 +218,7 @@ contains
      call MockRepositoryPointer%add( &
           & ExpectationThat( &
           &   'MockSUT_InternalDependency%method1', &
-          &   nWasCalled()))
+          &   WasCalled()))
      call internalProcedure() ! verification is when object is final-ized
 
      call MockRepositoryPointer%verify()
@@ -246,7 +246,7 @@ contains
      call MockRepositoryPointer%add( &
           & ExpectationThat( &
           &   'MockSUT_InternalDependency%method1', &
-          &   nWasCalled()))
+          &   WasCalled()))
       call internalProcedure() ! verification is when object is final-ized
 
       call MockRepositoryPointer%verify()
@@ -288,7 +288,7 @@ contains
      call MockRepositoryPointer%add( &
           & ExpectationThat( &
           &   'MockSUT_InternalDependency%method4', &
-          &   nWasCalled()))
+          &   WasCalled()))
 
      !!! TOD !!!
      !call MockRepositoryPointer%addExpectationThat( &
@@ -318,7 +318,7 @@ contains
      call MockRepositoryPointer%add( &
           & ExpectationThat( &
           &   'MockSUT_InternalDependency%method4', &
-          &   nWasCalled()))
+          &   WasCalled()))
 
      !!! TODO !!!
      !call MockRepositoryPointer%addExpectationThat( &
