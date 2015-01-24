@@ -115,6 +115,7 @@ module pFUnit_mod
    public :: Expectation, Subject, Predicate
    public :: wasCalled
    public :: wasCalledOnce
+   public :: wasNotCalled
 
 !   public :: wasCalled, nWasCalled
 !   public :: wasCalled, wasNotCalled, 

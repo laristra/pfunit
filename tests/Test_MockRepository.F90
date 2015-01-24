@@ -169,7 +169,14 @@ contains
       call suite%addTest( &
            &   newTestMethod('testExpectMethod_ExpectedOnceCalledTwice', &
            &                  testExpectMethod_ExpectedOnceCalledTwice))
-      
+
+      call suite%addTest( &
+           &   newTestMethod('testExpectMethod_ExpectedZero', &
+           &                  testExpectMethod_ExpectedZero))
+
+      call suite%addTest( &
+           &   newTestMethod('testExpectMethod_ExpectedZeroCalledOnce', &
+           &                  testExpectMethod_ExpectedZeroCalledOnce))
       
    end function suite
 
@@ -330,6 +337,64 @@ contains
       end subroutine internalProcedure
 
     end subroutine testExpectMethod_ExpectedOnceCalledTwice
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!
+!
+
+    subroutine testExpectMethod_ExpectedZero()
+
+      !print *,4000
+      call MockRepositoryPointer%add( &
+           & ExpectationThat( &
+           &   'MockSUT_InternalDependency%method1', &
+           &   WasNotCalled()))
+      call internalProcedure() ! verification is when object is final-ized
+      
+      call MockRepositoryPointer%verify()
+      
+!      call assertCatch('"MockSUT_InternalDependency%method1" "wasCalled" does not hold.')
+      
+    contains
+      
+      subroutine internalProcedure()
+        type (MockSUT_InternalDependency) :: SUT_withMockedMethod
+        
+        !print *,4100
+        SUT_withMockedMethod = newMockSUT_InternalDependency()
+        call SUT_withMockedMethod%method3()
+        
+      end subroutine internalProcedure
+
+    end subroutine testExpectMethod_ExpectedZero
+
+    
+    subroutine testExpectMethod_ExpectedZeroCalledOnce()
+
+      !print *,4000
+      call MockRepositoryPointer%add( &
+           & ExpectationThat( &
+           &   'MockSUT_InternalDependency%method1', &
+           &   WasNotCalled()))
+      call internalProcedure() ! verification is when object is final-ized
+      
+      call MockRepositoryPointer%verify()
+      
+!      call assertCatch('"MockSUT_InternalDependency%method1" "wasCalled" does not hold.')
+      
+    contains
+      
+      subroutine internalProcedure()
+        type (MockSUT_InternalDependency) :: SUT_withMockedMethod
+        
+        !print *,4100
+        SUT_withMockedMethod = newMockSUT_InternalDependency()
+        call SUT_withMockedMethod%method3()
+        
+      end subroutine internalProcedure
+
+    end subroutine testExpectMethod_ExpectedZeroCalledOnce
+
     
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
