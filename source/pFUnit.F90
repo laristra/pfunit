@@ -114,8 +114,10 @@ module pFUnit_mod
    public :: MockRepositoryPointer
    public :: Expectation, Subject, Predicate
    public :: wasCalled
+   public :: wasCalledOnce
+
 !   public :: wasCalled, nWasCalled
-!   public :: wasCalled, wasNotCalled, wasCalledOnce
+!   public :: wasCalled, wasNotCalled, 
 
    ! Optional arguments for assertEqual
    public :: WhitespaceOptions

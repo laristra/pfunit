@@ -162,6 +162,15 @@ contains
            &   newTestMethod('testExpectMethod_CalledDifferentMethod', &
            &                  testExpectMethod_CalledDifferentMethod))
 
+      call suite%addTest( &
+           &   newTestMethod('testExpectMethod_CalledOnce', &
+           &                  testExpectMethod_CalledOnce))
+
+      call suite%addTest( &
+           &   newTestMethod('testExpectMethod_ExpectedOnceCalledTwice', &
+           &                  testExpectMethod_ExpectedOnceCalledTwice))
+      
+      
    end function suite
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -248,23 +257,80 @@ contains
           &   'MockSUT_InternalDependency%method1', &
           &   WasCalled()))
       call internalProcedure() ! verification is when object is final-ized
-
+      
       call MockRepositoryPointer%verify()
 
       call assertCatch('"MockSUT_InternalDependency%method1" "wasCalled" does not hold.')
 
-   contains
+    contains
 
       subroutine internalProcedure()
-         type (MockSUT_InternalDependency) :: SUT_withMockedMethod
-
-         !print *,4100
-         SUT_withMockedMethod = newMockSUT_InternalDependency()
-         call SUT_withMockedMethod%method3()
+        type (MockSUT_InternalDependency) :: SUT_withMockedMethod
+        
+        !print *,4100
+        SUT_withMockedMethod = newMockSUT_InternalDependency()
+        call SUT_withMockedMethod%method3()
 
       end subroutine internalProcedure
 
-   end subroutine testExpectMethod_CalledDifferentMethod
+    end subroutine testExpectMethod_CalledDifferentMethod
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!
+!
+    subroutine testExpectMethod_CalledOnce()
+
+      !print *,4000
+      call MockRepositoryPointer%add( &
+           & ExpectationThat( &
+           &   'MockSUT_InternalDependency%method1', &
+           &   WasCalledOnce()))
+      call internalProcedure() ! verification is when object is final-ized
+      
+      call MockRepositoryPointer%verify()
+      
+!      call assertCatch('"MockSUT_InternalDependency%method1" "wasCalled" does not hold.')
+      
+    contains
+      
+      subroutine internalProcedure()
+        type (MockSUT_InternalDependency) :: SUT_withMockedMethod
+        
+        !print *,4100
+        SUT_withMockedMethod = newMockSUT_InternalDependency()
+        call SUT_withMockedMethod%method1()
+        
+      end subroutine internalProcedure
+
+    end subroutine testExpectMethod_CalledOnce
+
+    subroutine testExpectMethod_ExpectedOnceCalledTwice()
+
+      !print *,4000
+      call MockRepositoryPointer%add( &
+           & ExpectationThat( &
+           &   'MockSUT_InternalDependency%method1', &
+           &   WasCalledOnce()))
+      call internalProcedure() ! verification is when object is final-ized
+      
+      call MockRepositoryPointer%verify()
+      
+      call assertCatch('"MockSUT_InternalDependency%method1" "wasCalledOnce" does not hold.')
+      
+    contains
+      
+      subroutine internalProcedure()
+        type (MockSUT_InternalDependency) :: SUT_withMockedMethod
+        
+        !print *,4100
+        SUT_withMockedMethod = newMockSUT_InternalDependency()
+        call SUT_withMockedMethod%method1()
+        call SUT_withMockedMethod%method1()
+        
+      end subroutine internalProcedure
+
+    end subroutine testExpectMethod_ExpectedOnceCalledTwice
+    
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !

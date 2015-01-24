@@ -1,6 +1,6 @@
 
-
 ! Note: maybe have multiple expectation types for subroutines, classes, etc.
+!       Though this notion seems to have been moved to Predicates.
 ! 
 
 module Expectation_mod
@@ -12,10 +12,7 @@ module Expectation_mod
 
   public :: Expectation, newExpectation, ExpectationThat
   public :: Predicate
-  ! , newPredicate
-!  public :: Subject, newSubject, newSubjectNameOnly
   public :: Subject, newSubject
-!  public :: wasCalled, wasNotCalled, wasCalledOnce
 
   type :: Subject
      ! mlr todo allocatable strings
@@ -32,7 +29,6 @@ module Expectation_mod
      module procedure newSubject_
      module procedure newSubjectNameOnly_
   end interface newSubject
-
 
 ! TDD
 !  type(Predicate), parameter :: wasCalled     = Predicate('wasCalled')
