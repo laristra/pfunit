@@ -182,6 +182,11 @@ contains
       call suite%addTest ( &
            &   newTestMethod('testArgumentConstraint1', &
            &                  testArgumentConstraint1))
+
+      call suite%addTest ( &
+           &   newTestMethod('testArgumentConstraint2', &
+           &                  testArgumentConstraint2))
+
       
    end function suite
 
@@ -457,28 +462,25 @@ contains
      call MockRepositoryPointer%add( &
           & ExpectationThat( &
           &   'MockSUT_InternalDependency%method4', &
-          &   WasCalled()))
-
-     !!! TODO !!!
-     !call MockRepositoryPointer%addExpectationThat( &
-     !     & 'MockSUT_InternalDependency%method4', &
-     !     & wasCalledWithOnly(-1) )
+          &   argumentsEqual(-1)))
 
      SUT_withMockedMethod = newMockSUT_InternalDependency()
 
      call SUT_withMockedMethod%method4(999)
 
-     ! If an exception is caught, end NOW! Need to add some flow control here.
-     call assertTrue(catch(NULL_MESSAGE)) ! For example...
-     ! call catchAndQuit ! Intermediate
-     if (anyExceptions()) return
+     !? ! If an exception is caught, end NOW! Need to add some flow control here.
+     !? call assertTrue(catch(NULL_MESSAGE)) ! For example...
+     !? ! call catchAndQuit ! Intermediate
+     !? if (anyExceptions()) return
 
      call SUT_withMockedMethod%method4(-1)  ! Should this even be called?  If we're backing out?
 
      call MockRepositoryPointer%enableFinalVerification() ! Test Execution Finished...
      call MockRepositoryPointer%verify() ! Wrap up at end of tests...
 
-     call assertCatch('"MockSUT_InternalDependency%method4" "wasCalled" does not hold.')
+     call assertCatch(&
+          &  'MockSUT_InternalDependency%method4" "argumentsEqual"'//&
+          &  ' does not hold: expected: <-1> but found: <999>')
 
    end subroutine testArgumentConstraint2
 
