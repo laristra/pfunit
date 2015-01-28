@@ -17,16 +17,10 @@ module Expectation_mod
   type :: Subject
      ! mlr todo allocatable strings
      character(len=MAXLEN_STRING) :: name
-     procedure(subVoid), pointer, nopass :: ptr
   end type Subject
 
-  interface 
-     subroutine subVoid
-     end subroutine subVoid
-  end interface
-
   interface newSubject
-     module procedure newSubject_
+!     module procedure newSubject_
      module procedure newSubjectNameOnly_
   end interface newSubject
 
@@ -70,20 +64,20 @@ module Expectation_mod
   !end interface argumentsToBeVerified
 
 contains
-  type(Subject) function newSubject_(name,sub) result(subj_)
-    character(*) :: name
-    procedure(subVoid), pointer :: sub
-    subj_%name = name
-    subj_%ptr => sub
-    ! maybe include a reference too
-  end function newSubject_
+  !type(Subject) function newSubject_(name,sub) result(subj_)
+  !  character(*) :: name
+  !  procedure(subVoid), pointer :: sub
+  !  subj_%name = name
+  !  subj_%ptr => sub
+  !  ! maybe include a reference too
+  !end function newSubject_
 
   type(Subject) function newSubjectNameOnly_(name) result(subj_)
     character(*) :: name
-    procedure(subVoid), pointer :: sub
+    !procedure(subVoid), pointer :: sub
     subj_%name = name
     ! subj_%ptr => sub ! Maybe nullify...
-    nullify(subj_%ptr)
+    ! nullify(subj_%ptr)
     ! maybe include a reference too
   end function newSubjectNameOnly_
 
