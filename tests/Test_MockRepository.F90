@@ -14,6 +14,8 @@ module SUT_InternalDependency_mod
    private
 
    public :: SUT_InternalDependency
+   public :: newSUT_InternalDependency
+   public :: newSUT_InternalDependencyPointer   
 
    type SUT_InternalDependency
       integer :: intComponent
@@ -22,9 +24,20 @@ module SUT_InternalDependency_mod
       procedure :: method2
       procedure :: method3
       procedure :: method4
+      procedure :: method5
    end type SUT_InternalDependency
 
-contains
+ contains
+
+   function newSUT_InternalDependency() result(SUT)
+     type (SUT_InternalDependency), allocatable :: SUT
+     allocate(SUT)
+   end function newSUT_InternalDependency
+
+   function newSUT_InternalDependencyPointer() result(SUT)
+     type (SUT_InternalDependency), pointer :: SUT
+     allocate(SUT)
+   end function newSUT_InternalDependencyPointer
 
    subroutine method1(this)
      class (SUT_InternalDependency), intent(in) :: this
@@ -59,6 +72,7 @@ module MockSUT_InternalDependency_mod
 
    public :: MockSUT_InternalDependency
    public :: newMockSUT_InternalDependency
+   public :: newMockSUT_InternalDependencyPointer
 
    type, extends(SUT_InternalDependency) :: MockSUT_InternalDependency
    contains
@@ -73,10 +87,14 @@ contains
 
    function newMockSUT_InternalDependency() result(SUT_withMock)
      type (MockSUT_InternalDependency), allocatable :: SUT_withMock
-
      allocate(SUT_withMock)
-
    end function newMockSUT_InternalDependency
+
+   function newMockSUT_InternalDependencyPointer() result(SUT_withMock)
+     type (MockSUT_InternalDependency), pointer:: SUT_withMock
+     allocate(SUT_withMock)
+   end function newMockSUT_InternalDependencyPointer
+   
 
    subroutine method1(this)
       class (MockSUT_InternalDependency), intent(in) :: this
@@ -111,6 +129,13 @@ contains
           &%registerMockCallBy('MockSUT_InternalDependency%method4')
      call MockRepositoryPointer&
           &%verifyArguments('MockSUT_InternalDependency%method4',i)
+
+     ! Note:  Since the above in unlimited polymorphic, if you have
+     !        multiple arguments, then you can create an object with those
+     !        arguments as slots, and then pass that object into
+     !        verifyArguments, "unpacking" them in the predicate.
+     !
+     !        This may help passing and working with arrays.
      
      ! TODO:  
      !Q?      Throw an exception -- how to unwind?  Kick back?  
@@ -214,11 +239,19 @@ contains
 !
 
    subroutine testNoAction()
-      type (SUT_InternalDependency) :: object
-      type (MockSUT_InternalDependency) :: SUT_withMockedMethod
+     !type (SUT_InternalDependency) :: object
+     !type (MockSUT_InternalDependency) :: SUT_withMockedMethod
+     ! gcc-4.5-2, breaks intel-15
+     !class (SUT_InternalDependency), allocatable :: SUT_withMockedMethod
+     !
+     class (SUT_InternalDependency), pointer :: SUT_withMockedMethod
       
-      !!print *,1000
-      SUT_withMockedMethod = newMockSUT_InternalDependency()
+      !print *,1000
+      !SUT_withMockedMethod = newMockSUT_InternalDependency()
+      ! gcc-4.5-2 works, breaks intel-15
+      !allocate(SUT_withMockedMethod,source=newMockSUT_InternalDependency())
+      SUT_withMockedMethod => newMockSUT_InternalDependencyPointer()
+      !print *,1100
       call MockRepositoryPointer%verify()
 
    end subroutine testNoAction
@@ -229,7 +262,7 @@ contains
 
    subroutine testExpectMethod_NotCalled()
 
-     !!print *,2000
+     !print *,2000
      call MockRepositoryPointer%add( &
           & ExpectationThat( &
           &   'MockSUT_InternalDependency%method1', &
@@ -244,11 +277,15 @@ contains
    contains
 
       subroutine internalProcedure()
-         type (MockSUT_InternalDependency) :: SUT_withMockedMethod
-         
-         !!print *,2100
-         SUT_withMockedMethod = newMockSUT_InternalDependency()
-
+        !type (MockSUT_InternalDependency) :: SUT_withMockedMethod
+        !class (SUT_InternalDependency), allocatable :: SUT_withMockedMethod
+        class (SUT_InternalDependency), pointer :: SUT_withMockedMethod
+         !!!print *,2100
+        !SUT_withMockedMethod = newMockSUT_InternalDependency()
+        !print *,2100
+        !allocate(SUT_withMockedMethod,source=newMockSUT_InternalDependency())
+        SUT_withMockedMethod => newMockSUT_InternalDependencyPointer()
+        !print *,2200
       end subroutine internalProcedure
 
    end subroutine testExpectMethod_NotCalled
@@ -274,12 +311,14 @@ contains
    contains
 
       subroutine internalProcedure()
-         type (MockSUT_InternalDependency) :: SUT_withMockedMethod
-
-         !print *,3100
-         SUT_withMockedMethod = newMockSUT_InternalDependency()
-         call SUT_withMockedMethod%method1()
-
+        !type (MockSUT_InternalDependency) :: SUT_withMockedMethod
+        !class (SUT_InternalDependency), allocatable :: SUT_withMockedMethod
+        class (SUT_InternalDependency), pointer :: SUT_withMockedMethod
+        !!print *,3100
+        !SUT_withMockedMethod = newMockSUT_InternalDependency()
+        !allocate(SUT_withMockedMethod,source=newMockSUT_InternalDependency())
+        SUT_withMockedMethod => newMockSUT_InternalDependencyPointer()
+        call SUT_withMockedMethod%method1()
       end subroutine internalProcedure
 
    end subroutine testExpectMethod_IsCalled
@@ -305,12 +344,13 @@ contains
     contains
 
       subroutine internalProcedure()
-        type (MockSUT_InternalDependency) :: SUT_withMockedMethod
-        
-        !print *,4100
-        SUT_withMockedMethod = newMockSUT_InternalDependency()
+        !type (MockSUT_InternalDependency) :: SUT_withMockedMethod
+        !class (SUT_InternalDependency), allocatable :: SUT_withMockedMethod
+        class (SUT_InternalDependency), pointer :: SUT_withMockedMethod
+        !!print *,4100
+        !allocate(SUT_withMockedMethod,source=newMockSUT_InternalDependency())
+        SUT_withMockedMethod => newMockSUT_InternalDependencyPointer()
         call SUT_withMockedMethod%method3()
-
       end subroutine internalProcedure
 
     end subroutine testExpectMethod_CalledDifferentMethod
@@ -335,19 +375,19 @@ contains
     contains
       
       subroutine internalProcedure()
-        type (MockSUT_InternalDependency) :: SUT_withMockedMethod
-        
-        !print *,4100
-        SUT_withMockedMethod = newMockSUT_InternalDependency()
+        !class (SUT_InternalDependency), allocatable :: SUT_withMockedMethod
+        class (SUT_InternalDependency), pointer :: SUT_withMockedMethod
+        !!print *,4100
+        !allocate(SUT_withMockedMethod,source=newMockSUT_InternalDependency())
+        SUT_withMockedMethod => newMockSUT_InternalDependencyPointer()
         call SUT_withMockedMethod%method1()
-        
       end subroutine internalProcedure
 
     end subroutine testExpectMethod_CalledOnce
 
     subroutine testExpectMethod_ExpectedOnceCalledTwice()
 
-      !print *,4000
+      !print *,5000
       call MockRepositoryPointer%add( &
            & ExpectationThat( &
            &   'MockSUT_InternalDependency%method1', &
@@ -362,10 +402,12 @@ contains
     contains
       
       subroutine internalProcedure()
-        type (MockSUT_InternalDependency) :: SUT_withMockedMethod
+        !class (SUT_InternalDependency), allocatable :: SUT_withMockedMethod
+        class (SUT_InternalDependency), pointer :: SUT_withMockedMethod
         
-        !print *,4100
-        SUT_withMockedMethod = newMockSUT_InternalDependency()
+        !!print *,4100
+        !allocate(SUT_withMockedMethod,source=newMockSUT_InternalDependency())
+        SUT_withMockedMethod => newMockSUT_InternalDependencyPointer()
         call SUT_withMockedMethod%method1()
         call SUT_withMockedMethod%method1()
         
@@ -379,7 +421,7 @@ contains
 
     subroutine testExpectMethod_ExpectedZero()
 
-      !print *,4000
+      !print *,6000
       call MockRepositoryPointer%add( &
            & ExpectationThat( &
            &   'MockSUT_InternalDependency%method1', &
@@ -394,10 +436,12 @@ contains
     contains
       
       subroutine internalProcedure()
-        type (MockSUT_InternalDependency) :: SUT_withMockedMethod
+        !class (SUT_InternalDependency), allocatable :: SUT_withMockedMethod
+        class (SUT_InternalDependency), pointer :: SUT_withMockedMethod
         
-        !print *,4100
-        SUT_withMockedMethod = newMockSUT_InternalDependency()
+        !!print *,4100
+        !allocate(SUT_withMockedMethod,source=newMockSUT_InternalDependency())
+        SUT_withMockedMethod => newMockSUT_InternalDependencyPointer()
         call SUT_withMockedMethod%method3()
         
       end subroutine internalProcedure
@@ -407,7 +451,7 @@ contains
     
     subroutine testExpectMethod_ExpectedZeroCalledOnce()
 
-      !print *,4000
+      !print *,7000
       call MockRepositoryPointer%add( &
            & ExpectationThat( &
            &   'MockSUT_InternalDependency%method1', &
@@ -422,10 +466,12 @@ contains
     contains
       
       subroutine internalProcedure()
-        type (MockSUT_InternalDependency) :: SUT_withMockedMethod
+        !class (SUT_InternalDependency), allocatable :: SUT_withMockedMethod
+        class (SUT_InternalDependency), pointer :: SUT_withMockedMethod
         
-        !print *,4100
-        SUT_withMockedMethod = newMockSUT_InternalDependency()
+        !!print *,4100
+        !allocate(SUT_withMockedMethod,source=newMockSUT_InternalDependency())
+        SUT_withMockedMethod => newMockSUT_InternalDependencyPointer()
         call SUT_withMockedMethod%method3()
         
       end subroutine internalProcedure
@@ -451,7 +497,10 @@ contains
 
    subroutine testArgumentConstraint1()
 
-     type (MockSUT_InternalDependency) :: SUT_withMockedMethod
+     !class (SUT_InternalDependency), allocatable :: SUT_withMockedMethod
+     class (SUT_InternalDependency), pointer :: SUT_withMockedMethod
+
+     !print *,8000
 
      call MockRepositoryPointer%add( &
           & ExpectationThat( &
@@ -463,8 +512,9 @@ contains
           &   'MockSUT_InternalDependency%method4', &
           &   WasCalled()))
      
-     SUT_withMockedMethod = newMockSUT_InternalDependency()
-
+     !allocate(SUT_withMockedMethod,source=newMockSUT_InternalDependency())
+     SUT_withMockedMethod => newMockSUT_InternalDependencyPointer()
+     
      call SUT_withMockedMethod%method4(999)
      
      call MockRepositoryPointer%enableFinalVerification() ! Test Execution Finished...
@@ -476,15 +526,21 @@ contains
 
    subroutine testArgumentConstraint2()
 
-     type (MockSUT_InternalDependency) :: SUT_withMockedMethod
+!     type (MockSUT_InternalDependency) :: SUT_withMockedMethod
+!     class (SUT_InternalDependency), allocatable :: SUT_withMockedMethod
+     class (SUT_InternalDependency), pointer :: SUT_withMockedMethod     
 
+     !print *,9000
+     
      call MockRepositoryPointer%add( &
           & ExpectationThat( &
           &   'MockSUT_InternalDependency%method4', &
           &   argumentsEqual(-1)))
 
-     SUT_withMockedMethod = newMockSUT_InternalDependency()
-
+     ! SUT_withMockedMethod = newMockSUT_InternalDependency()
+     !allocate(SUT_withMockedMethod,source=newMockSUT_InternalDependency())
+     SUT_withMockedMethod => newMockSUT_InternalDependencyPointer()
+     
      call SUT_withMockedMethod%method4(999)
 
      !? ! If an exception is caught, end NOW! Need to add some flow control here.
@@ -505,15 +561,20 @@ contains
 
    subroutine testArgumentConstraint3()
 
-     type (MockSUT_InternalDependency) :: SUT_withMockedMethod
+     !class (SUT_InternalDependency), allocatable :: SUT_withMockedMethod
+     class (SUT_InternalDependency), pointer :: SUT_withMockedMethod
 
+     !print *,10000
+     
      call MockRepositoryPointer%add( &
           & ExpectationThat( &
           & 'MockSUT_InternalDependency%method5', &
           & argumentsEqual(999.0)))
 
-     SUT_withMockedMethod = newMockSUT_InternalDependency()
-
+     ! SUT_withMockedMethod = newMockSUT_InternalDependency()
+     !allocate(SUT_withMockedMethod,source=newMockSUT_InternalDependency())
+     SUT_withMockedMethod => newMockSUT_InternalDependencyPointer()
+     
      call SUT_withMockedMethod%method5(999.0)
      
      call MockRepositoryPointer%enableFinalVerification() ! Test Execution Finished...
