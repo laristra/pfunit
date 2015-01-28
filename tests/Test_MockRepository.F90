@@ -43,6 +43,11 @@ contains
      integer, intent(in) :: i
    end subroutine method4
 
+   subroutine method5(this,r)
+     class (SUT_InternalDependency), intent(in) :: this
+     real, intent(in) :: r
+   end subroutine method5
+
 end module SUT_InternalDependency_mod
 
 module MockSUT_InternalDependency_mod
@@ -61,6 +66,7 @@ module MockSUT_InternalDependency_mod
       procedure :: method2 ! not mocked
       procedure :: method3 ! mocked
       procedure :: method4 ! mocked
+      procedure :: method5 ! mocked      
    end type MockSUT_InternalDependency
 
 contains
@@ -115,6 +121,15 @@ contains
 
 ! Call other stuff...
    end subroutine method4
+
+   subroutine method5(this,r)
+     class (MockSUT_InternalDependency), intent(in) :: this
+     real, intent(in) :: r
+     call MockRepositoryPointer&
+          &%registerMockCallBy('MockSUT_InternalDependency%method5')
+     call MockRepositoryPointer&
+          &%verifyArguments('MockSUT_InternalDependency%method5',r)
+   end subroutine method5
 
 
 end module MockSUT_InternalDependency_mod
@@ -186,6 +201,10 @@ contains
       call suite%addTest ( &
            &   newTestMethod('testArgumentConstraint2', &
            &                  testArgumentConstraint2))
+
+      call suite%addTest ( &
+           &   newTestMethod('testArgumentConstraint3', &
+           &                  testArgumentConstraint3))
 
       
    end function suite
@@ -483,6 +502,26 @@ contains
           &  ' does not hold: expected: <-1> but found: <999>')
 
    end subroutine testArgumentConstraint2
+
+   subroutine testArgumentConstraint3()
+
+     type (MockSUT_InternalDependency) :: SUT_withMockedMethod
+
+     call MockRepositoryPointer%add( &
+          & ExpectationThat( &
+          & 'MockSUT_InternalDependency%method5', &
+          & argumentsEqual(999.0)))
+
+     SUT_withMockedMethod = newMockSUT_InternalDependency()
+
+     call SUT_withMockedMethod%method5(999.0)
+     
+     call MockRepositoryPointer%enableFinalVerification() ! Test Execution Finished...
+     
+     call MockRepositoryPointer%verify() ! Wrap up at end of tests...
+
+   end subroutine testArgumentConstraint3
+   
 
 !
 !

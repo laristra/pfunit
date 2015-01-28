@@ -24,9 +24,11 @@ module Predicate_mod
      character(len=MAXLEN_STRING) :: name
    contains
      procedure(verifyInterface), deferred :: verify_
-     procedure(verify_i1_Interface), deferred :: verify_i1_
+     !procedure(verify_i1_Interface), deferred :: verify_i1_
+     procedure(verify_p1_Interface), deferred :: verify_p1_
      ! generic :: verify => verify_
-     generic :: verify => verify_, verify_i1_
+     ! generic :: verify => verify_, verify_i1_
+     generic :: verify => verify_, verify_p1_
      procedure(argumentsToBeVerifiedInterface), deferred :: &
           & argumentsToBeVerified
   end type Predicate
@@ -41,16 +43,26 @@ module Predicate_mod
        type(EventPolyWrapVector), intent(in) :: eventList
      end function verifyInterface
 
-     logical function verify_i1_Interface(this,subj,eventList&
-          & ,i1 )
+     !logical function verify_i1_Interface(this,subj,eventList&
+     !     & ,i1 )
+     !  import Predicate
+     !  import EventPolyWrapVector
+     !  class (Predicate), intent(inout) :: this
+     !  character(*), intent(in) :: subj
+     !  type(EventPolyWrapVector), intent(in) :: eventList
+     !  integer, intent(in) :: i1
+     !end function verify_i1_Interface
+
+     logical function verify_p1_Interface(this,subj,eventList&
+          & ,p1 )
        import Predicate
        import EventPolyWrapVector
        class (Predicate), intent(inout) :: this
        character(*), intent(in) :: subj
        type(EventPolyWrapVector), intent(in) :: eventList
-       integer, intent(in) :: i1
-     end function verify_i1_Interface
-
+       class(*), intent(in) :: p1
+     end function verify_p1_Interface
+     
      logical function argumentsToBeVerifiedInterface(this)
        import Predicate
        class (Predicate), intent(inout) :: this

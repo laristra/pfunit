@@ -52,8 +52,10 @@ module Expectation_mod
      class(Predicate), pointer :: pred
    contains
      procedure :: verify_
-     procedure :: verify_i1_
-     generic   :: verify => verify_, verify_i1_
+     !procedure :: verify_i1_
+     procedure :: verify_poly1_
+     !generic   :: verify => verify_, verify_i1_
+     generic   :: verify => verify_, verify_poly1_
      procedure :: argumentsToBeVerified_
      generic :: argumentsToBeVerified => argumentsToBeVerified_
   end type Expectation
@@ -119,6 +121,14 @@ contains
     !print *,5000,trim(this%subj%name)//'...'//trim(this%pred%name)
     ok = this%pred%verify(this%subj%name,eventList,i1)
   end function verify_i1_
+
+  logical function verify_poly1_(this,eventList,p1) result(ok)
+    use Exception_mod
+    class (Expectation), intent(inout) :: this
+    type (EventPolyWrapVector), intent(in) :: eventList
+    class (*), intent(in) :: p1
+    ok = this%pred%verify(this%subj%name,eventList,p1)
+  end function verify_poly1_
 
   logical function argumentsToBeVerified_(this)
     class (Expectation), intent(in) :: this

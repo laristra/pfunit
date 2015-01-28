@@ -16,33 +16,45 @@ module PredicateArgumentsEqual_mod
 
 !!! Data for verification
      integer :: i1
+     real :: r1
      
    contains
 !     procedure :: verifyAgainst
      procedure :: verify_ => verify_ArgumentsEqual
      procedure :: verify_i1_ => verify_i1_ArgumentsEqual
+     procedure :: verify_r1_ => verify_r1_ArgumentsEqual
+     procedure :: verify_p1_ => verify_p1_ArgumentsEqual
      procedure :: argumentsToBeVerified => argumentsToBeVerified_
   end type ArgumentsEqual
 
 !!!! Or do we invoke the predicate from the subject?
 
   interface ArgumentsEqual
-     module procedure newArgumentsEqual
+     module procedure newArgumentsEqual_i
+     module procedure newArgumentsEqual_r
   end interface ArgumentsEqual
 
   interface verify
      module procedure verify_ArgumentsEqual
-     module procedure verify_i1_ArgumentsEqual
+     !module procedure verify_i1_ArgumentsEqual
+     module procedure verify_p1_ArgumentsEqual
   end interface verify
 
 contains
 
-  type(ArgumentsEqual) function newArgumentsEqual(i1) result(pred_)
+  type(ArgumentsEqual) function newArgumentsEqual_i(i1) result(pred_)
     integer, intent(in) :: i1
     pred_%name = 'argumentsEqual'
     pred_%i1   = i1
     !print *,19000,pred_%name    
-  end function newArgumentsEqual
+  end function newArgumentsEqual_i
+
+  type(ArgumentsEqual) function newArgumentsEqual_r(r1) result(pred_)
+    real, intent(in) :: r1
+    pred_%name = 'argumentsEqual'
+    pred_%r1   = r1
+    !print *,19000,pred_%name    
+  end function newArgumentsEqual_r
 
   ! Enable argument checking.
   logical function argumentsToBeVerified_(this)
@@ -91,12 +103,68 @@ contains
        
   end function verify_i1_ArgumentsEqual
 
+  ! Note:  No tolerance for the real case below.
+  
+  ! Note: that real and integer of the above and below are essentially
+  ! identical. Can we put these into one, maybe using polymorphism?
+  logical function verify_r1_ArgumentsEqual(this,subj,eventList&
+       & ,r1 )
+    use StringConversionUtilities_mod, only: toString
+    class (ArgumentsEqual), intent(inout) :: this
+    character(*), intent(in) :: subj
+    type(EventPolyWrapVector), intent(in) :: eventList
+    real, intent(in) :: r1
+    !call throw('verify_r1_::not implemented')
+    !verify_r1_ArgumentsEqual = .false.
+    if (this%r1 == r1) then
+       verify_r1_ArgumentsEqual = .true.
+    else
+       verify_r1_ArgumentsEqual = .false.
+       call throw( & ! '             "'// &
+            & trim(subj)//'" "'//trim(this%name)//'" does not hold: ' &
+            & // valuesReport_rr(this%r1,r1))
+    end if
+       
+  end function verify_r1_ArgumentsEqual
+
+  logical function verify_p1_ArgumentsEqual(this,subj,eventList&
+       &, p1 )
+    class (ArgumentsEqual), intent(inout) :: this
+    character(*), intent(in) :: subj
+    type(EventPolyWrapVector), intent(in) :: eventList
+    class(*), intent(in) :: p1
+
+    !call throw('verify_p1_::not implemented')
+    verify_p1_ArgumentsEqual = .false.
+
+    select type(p1)
+    type is (integer)
+       verify_p1_ArgumentsEqual = this%verify_i1_(subj,eventList,p1)
+       return
+    type is (real)
+       verify_p1_ArgumentsEqual = this%verify_r1_(subj,eventList,p1)
+       return
+    end select
+    
+    call throw('verify_p1_::dispatch on type not implemented')
+    verify_p1_ArgumentsEqual = .false.
+    
+  end function verify_p1_ArgumentsEqual
+
+  ! Can we put the two below into a generic interface?
   character(len=MAXLEN_MESSAGE) function valuesReport(expected, found)
     use StringConversionUtilities_mod, only: toString
     integer, intent(in) :: expected, found
     valuesReport = 'expected: <'//trim(toString(expected))//'> but found: <'&
          &//trim(toString(found))//'>'
   end function valuesReport
+
+  character(len=MAXLEN_MESSAGE) function valuesReport_rr(expected, found)
+    use StringConversionUtilities_mod, only: toString
+    real, intent(in) :: expected, found
+    valuesReport_rr = 'expected: <'//trim(toString(expected))//'> but found: <'&
+         &//trim(toString(found))//'>'
+  end function valuesReport_rr
 
 end module PredicateArgumentsEqual_mod
 

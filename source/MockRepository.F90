@@ -249,7 +249,8 @@ contains
       use Exception_mod
       class (MockRepository), intent(inout), target :: this
       character(len=*), intent(in) :: subj
-      integer, intent(in) :: i1
+      class(*), intent(in) :: i1
+!      integer, intent(in) :: i1
       
       class (Event), pointer :: lastEvent
       class (Expectation), pointer :: exp, reg
@@ -272,6 +273,7 @@ contains
          expContainer => iter%get(); exp => expContainer%get()
          !print *,'1000: ',trim(exp%subj%name)//'...'//trim(exp%pred%name)
          if (exp%argumentsToBeVerified()) then
+            ! Can we repace i1 in the following with a polymorphic quantity?
             ok = ok .and. exp%verify(this%EventList,i1)
             !print *,'1100: ',trim(exp%subj%name)//'...'//trim(exp%pred%name)
             !?if (.not.ok) then

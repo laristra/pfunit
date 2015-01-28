@@ -16,6 +16,7 @@ module PredicateWasNotCalled_mod
 !     procedure :: verifyAgainst
      procedure :: verify_ => verify_WasNotCalled
      procedure :: verify_i1_ => verify_i1_WasNotCalled
+     procedure :: verify_p1_ => verify_p1_WasNotCalled
      procedure :: argumentsToBeVerified => argumentsToBeVerified_     
   end type WasNotCalled
 
@@ -27,7 +28,8 @@ module PredicateWasNotCalled_mod
 
   interface verify
      module procedure verify_WasNotCalled
-     module procedure verify_i1_WasNotCalled
+     !module procedure verify_i1_WasNotCalled
+     module procedure verify_p1_WasNotCalled
   end interface verify
 
 contains
@@ -128,6 +130,16 @@ contains
     call throw('verify_i1_::not implemented')
     verify_i1_WasNotCalled = .false.
   end function verify_i1_WasNotCalled
+
+  logical function verify_p1_WasNotCalled(this,subj,eventList&
+       &, p1 )
+    class (WasNotCalled), intent(inout) :: this
+    character(*), intent(in) :: subj
+    type(EventPolyWrapVector), intent(in) :: eventList
+    class(*), intent(in) :: p1
+    call throw('verify_p1_::not implemented')
+    verify_p1_WasNotCalled = .false.
+  end function verify_p1_WasNotCalled
 
 end module PredicateWasNotCalled_mod
 
