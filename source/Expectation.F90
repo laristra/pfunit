@@ -51,8 +51,21 @@ module Expectation_mod
      type(Subject) :: subj
      class(Predicate), pointer :: pred
    contains
-     procedure :: verify
+     procedure :: verify_
+     procedure :: verify_i1_
+     generic   :: verify => verify_, verify_i1_
+     procedure :: argumentsToBeVerified_
+     generic :: argumentsToBeVerified => argumentsToBeVerified_
   end type Expectation
+
+  interface verify
+     module procedure verify_
+     module procedure verify_i1_
+  end interface verify
+
+  !interface argumentsToBeVerified
+  !   module procedure argumentsToBeVerified_
+  !end interface argumentsToBeVerified
 
 contains
   type(Subject) function newSubject_(name,sub) result(subj_)
@@ -77,6 +90,7 @@ contains
   type(Expectation) function newExpectation(subj, pred) result(expect)
     type(Subject), intent(in) :: subj
     class(Predicate), intent(in), target :: pred
+    !print *,3000,trim(subj%name)//'...'//trim(pred%name)
     expect%subj = subj
     ! Pointer or copy?
     expect%pred => pred
@@ -89,13 +103,27 @@ contains
   end function ExpectationThat
 
   ! How to make abstract?
-  logical function verify(this,eventList) result(ok)
+  logical function verify_(this,eventList) result(ok)
     use Exception_mod
     class (Expectation), intent(inout) :: this
     type (EventPolyWrapVector), intent(in) :: eventList
-    !call throw('Expectation%verify not implemented.')
-    !ok = .false.  ! preliminary tdd
+    !print *,4000,trim(this%subj%name)//'...'//trim(this%pred%name)
     ok = this%pred%verify(this%subj%name,eventList)
-  end function verify
+  end function verify_
 
+  logical function verify_i1_(this,eventList,i1) result(ok)
+    use Exception_mod
+    class (Expectation), intent(inout) :: this
+    type (EventPolyWrapVector), intent(in) :: eventList
+    integer, intent(in) :: i1
+    !print *,5000,trim(this%subj%name)//'...'//trim(this%pred%name)
+    ok = this%pred%verify(this%subj%name,eventList,i1)
+  end function verify_i1_
+
+  logical function argumentsToBeVerified_(this)
+    class (Expectation), intent(in) :: this
+    !type (Expectation), intent(in) :: this
+    argumentsToBeVerified_ = this%pred%argumentsToBeVerified()
+  end function argumentsToBeVerified_
+  
 end module Expectation_mod

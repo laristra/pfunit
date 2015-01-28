@@ -46,6 +46,7 @@ list(APPEND srcs Predicate.F90)
 list(APPEND srcs PredicateWasCalled.F90)
 list(APPEND srcs PredicateWasCalledOnce.F90)
 list(APPEND srcs PredicateWasNotCalled.F90)
+list(APPEND srcs PredicateArgumentsEqual.F90)
 
 list(APPEND srcs Event.F90)
 list(APPEND srcs Expectation.F90)

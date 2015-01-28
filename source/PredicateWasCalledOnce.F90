@@ -14,7 +14,9 @@ module PredicateWasCalledOnce_mod
   type, extends(Predicate) :: WasCalledOnce
    contains
 !     procedure :: verifyAgainst
-     procedure :: verify => verify_WasCalledOnce
+     procedure :: verify_ => verify_WasCalledOnce
+     procedure :: verify_i1_=> verify_i1_WasCalledOnce
+     procedure :: argumentsToBeVerified => argumentsToBeVerified_
   end type WasCalledOnce
 
 !!!! Or do we invoke the predicate from the subject?
@@ -23,12 +25,22 @@ module PredicateWasCalledOnce_mod
      module procedure newWasCalledOnce
   end interface WasCalledOnce
 
+  interface verify
+     module procedure verify_WasCalledOnce
+     module procedure verify_i1_WasCalledOnce
+  end interface verify
+
 contains
 
   type(WasCalledOnce) function newWasCalledOnce() result(pred_)
     pred_%name = 'wasCalledOnce'
   end function newWasCalledOnce
 
+  logical function argumentsToBeVerified_(this)
+    class(WasCalledOnce), intent(inout) :: this
+    argumentsToBeVerified_ = .false.
+  end function argumentsToBeVerified_
+  
 !  logical function verifyAgainst(this,subj_) result(ok)
 !    class(WasCalledOnce), intent(inout) :: this
 !    character(*) :: subj_
@@ -104,6 +116,16 @@ contains
     !print *,14000
 
   end function verify_WasCalledOnce
+
+  logical function verify_i1_WasCalledOnce(this,subj,eventList&
+       & ,i1 )
+    class (WasCalledOnce), intent(inout) :: this
+    character(*), intent(in) :: subj
+    type(EventPolyWrapVector), intent(in) :: eventList
+    integer, intent(in) :: i1
+    call throw('verify_i1_::not implemented')
+    verify_i1_WasCalledOnce = .false.
+  end function verify_i1_WasCalledOnce
   
 
 end module PredicateWasCalledOnce_mod

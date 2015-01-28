@@ -116,6 +116,7 @@ module pFUnit_mod
    public :: wasCalled
    public :: wasCalledOnce
    public :: wasNotCalled
+   public :: ArgumentsEqual
 
 !   public :: wasCalled, nWasCalled
 !   public :: wasCalled, wasNotCalled, 

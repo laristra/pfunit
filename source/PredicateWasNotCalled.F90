@@ -14,7 +14,9 @@ module PredicateWasNotCalled_mod
   type, extends(Predicate) :: WasNotCalled
    contains
 !     procedure :: verifyAgainst
-     procedure :: verify => verify_WasNotCalled
+     procedure :: verify_ => verify_WasNotCalled
+     procedure :: verify_i1_ => verify_i1_WasNotCalled
+     procedure :: argumentsToBeVerified => argumentsToBeVerified_     
   end type WasNotCalled
 
 !!!! Or do we invoke the predicate from the subject?
@@ -23,11 +25,21 @@ module PredicateWasNotCalled_mod
      module procedure newWasNotCalled
   end interface WasNotCalled
 
+  interface verify
+     module procedure verify_WasNotCalled
+     module procedure verify_i1_WasNotCalled
+  end interface verify
+
 contains
 
   type(WasNotCalled) function newWasNotCalled() result(pred_)
     pred_%name = 'wasNotCalled'
   end function newWasNotCalled
+
+  logical function argumentsToBeVerified_(this)
+    class(WasNotCalled), intent(inout) :: this
+    argumentsToBeVerified_ = .false.
+  end function argumentsToBeVerified_  
 
 !  logical function verifyAgainst(this,subj_) result(ok)
 !    class(WasNotCalled), intent(inout) :: this
@@ -35,7 +47,6 @@ contains
 !    ok = .false.
 !    call throw('PredicateWasNotCalled%verifyAgainst::Error:NotImplemented')
 !  end function verifyAgainst
-
 
   logical function verify_WasNotCalled(this,subj,eventList) result(verifiedp_)
     class (WasNotCalled), intent(inout) :: this
@@ -107,7 +118,16 @@ contains
     !print *,14000
 
   end function verify_WasNotCalled
-  
+
+  logical function verify_i1_WasNotCalled(this,subj,eventList&
+       & ,i1 )
+    class (WasNotCalled), intent(inout) :: this
+    character(*), intent(in) :: subj
+    type(EventPolyWrapVector), intent(in) :: eventList
+    integer, intent(in) :: i1
+    call throw('verify_i1_::not implemented')
+    verify_i1_WasNotCalled = .false.
+  end function verify_i1_WasNotCalled
 
 end module PredicateWasNotCalled_mod
 

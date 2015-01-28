@@ -22,11 +22,8 @@
 !-------------------------------------------------------------------------------
 module MockRepository_mod
    use Expectation_mod, only : Expectation, newExpectation, ExpectationThat
-!   use Expectation_mod, only : Subject, newSubject, newSubjectNameOnly
    use Expectation_mod, only : Subject, newSubject
    use Expectation_mod, only : Predicate
-   ! , newPredicate
-   !   use Expectation_mod, only : wasCalled, wasNotCalled, wasCalledOnce
 
    use Event_mod
    use EventPolyWrap_mod
@@ -35,6 +32,8 @@ module MockRepository_mod
    use ExpectationPolyWrapVector_mod
 
    use Predicates_mod
+
+   ! uze Verifier_mod
    
    implicit none
    private
@@ -43,15 +42,14 @@ module MockRepository_mod
    public :: newMockRepository
    public :: MockRepositoryPointer
 
-!   public :: Predicate, wasCalled
-!   public :: Predicate, wasCalled, wasNotCalled, wasCalledOnce
-
    public :: MAX_LEN_METHOD_NAME
    public :: MAX_LEN_CALL_REGISTRATION
 
    integer, parameter :: MAX_LEN_METHOD_NAME = 32
    integer, parameter :: MAX_LEN_CALL_REGISTRATION = 32
    integer, parameter :: MAX_EXPECTATIONS = 8
+
+ 
    type MockRepository
       ! mlr todo Allocatable strings are available...
       ! mlr todo test under nag
@@ -71,15 +69,6 @@ module MockRepository_mod
 
     contains
 
-      procedure :: countTimesCalled
-      
-      procedure :: verifyMocking
-      !procedure :: expectCall
-      !procedure :: hasCalled
-
-      procedure :: expectCall
-      procedure :: hasCalled
-
       generic   :: add => addExpectation_
       procedure :: addExpectation_
       
@@ -87,9 +76,13 @@ module MockRepository_mod
 
       procedure :: registerMockCallBy_subName_
 
-      procedure :: verify
+      procedure :: enableFinalVerification
 
-!      procedure :: verifyArguments
+      procedure :: verify
+      procedure :: verifyArguments_i1_
+      procedure :: verifyArguments => verifyArguments_i1_
+      ! procedure(verifyArguments) :: verifyArguments
+      ! generic :: <verifyGeneric> => verify, verifyArguments
 
       ! final?
       ! mlr todo make a deep delete
@@ -109,6 +102,18 @@ module MockRepository_mod
       subroutine subVoid
       end subroutine subVoid
    end interface
+
+   !interface verifyArguments
+   !   ! The explicit interface may not be needed.
+   !   subroutine verifyArguments_i1_(subj,i1)
+   !     character(len=*), intent(in) :: subj
+   !     integer, intent(in) :: i1
+   !   end subroutine verifyArguments_i1_
+   !end interface verifyArguments
+
+   !interface verifyArguments
+   !   module procedure verifyArguments_i1_
+   !end interface verifyArguments
 
    type :: MockRepositoryContainer
       class (MockRepository), pointer :: ptr
@@ -133,13 +138,6 @@ contains
   function newMockRepository() result(repository)
     use Exception_mod
       type (MockRepository), pointer :: repository
-!      type (MockRepository), allocatable, target :: repository
-
-!!??      if ( associated(MockRepositoryPointer) ) then
-!!??         nullify(MockRepositoryPointer)
-!!??! Sometimes TestResult%endRun isn't called!  Feature or bug?  2014-0922-2209-31-UTC MLR
-!!??!         print *,'MockRepository.newMockRepository::ERROR::RepositoryAlreadyAllocated'
-!!??      end if
 
       MockRepositoryStack_Top = MockRepositoryStack_Top + 1
       if (MockRepositoryStack_Top > MockRepositoryStack_MAX) then
@@ -180,76 +178,6 @@ contains
 
    end subroutine delete
 
-   subroutine verifyMocking(this, object)
-      use Exception_mod
-      class (MockRepository), intent(inout) :: this
-      class (*) :: object
-      integer :: iExp
-      class (Expectation), allocatable :: exp_
-      logical :: ok
-      
-      if (trim(this%method) /= '') then
-         call throw('Expected method not called: method1() on object of class MockSUT.')
-      end if
-
-! Begin older code
-!-
-!-   subroutine verifyMocking(this, object)
-!-      use Exception_mod
-!-      class (MockRepository), intent(inout) :: this
-!-      class (*) :: object
-!-      
-!-      if (trim(this%method) /= '') then
-!-         call throw('Expected method not called: method1() on object of class MockSUT.')
-!-      end if
-!-
-!-!      ! Only need to verify once. Finish it off...
-!-!      call this%delete()
-!-
-!-   end subroutine verifyMocking
-!-
-!-   subroutine expectCall(this, obj, method)
-!-      class (MockRepository), intent(inout) :: this
-!-      class(*), intent(in) :: obj
-!-      character(len=*), intent(in) :: method
-!-
-!-      this%method = method
-!-   end subroutine expectCall
-!-
-!-   subroutine hasCalled(this, obj, method)
-!-      class (MockRepository), intent(inout) :: this
-!-      class(*), intent(in) :: obj
-!-      character(len=*), intent(in) :: method
-!-
-!-      if (trim(method) == trim(this%method)) then
-!-         this%method=''
-!-      end if
-!-   end subroutine hasCalled
-!-
-!-!! End older code
-
-   end subroutine verifyMocking
-
-   subroutine expectCall(this, obj, method)
-      class (MockRepository), intent(inout) :: this
-      class(*), intent(in) :: obj
-      character(len=*), intent(in) :: method
-
-      this%method = method
-   end subroutine expectCall
-
-   subroutine hasCalled(this, obj, method)
-      class (MockRepository), intent(inout) :: this
-      class(*), intent(in) :: obj
-      character(len=*), intent(in) :: method
-
-      if (trim(method) == trim(this%method)) then
-         this%method=''
-      end if
-   end subroutine hasCalled
-
-!!!   !! End older code
-
    subroutine addExpectation_(this,expectation_)
      use Exception_mod
      class (MockRepository), intent(inout) :: this
@@ -257,128 +185,15 @@ contains
 
      call this%ExpectationList%push_back(ExpectationPolyWrap(expectation_))
 
-!     ! Fake implementation
-!     this%lastExpectation = this%lastExpectation + 1
-!     if (this%lastExpectation > MAX_EXPECTATIONS) then
-!        call throw("MockRepository%addExpectation_:error:too many expectations:dropping last")
-!        this%lastExpectation = this%lastExpectation - 1
-!        return
-!     else
-!        this%Expectations(this%lastExpectation) = expectation_
-!     end if
    end subroutine addExpectation_
 
    subroutine registerMockCallBy_subName_(this,subName)
      class (MockRepository), intent(inout) :: this
      character(len=*), intent(in) :: subName
 
-     !     call this%EventList%push_back(EventPolywrap(newEvent(subName,"wasCalled-XXX")))
-     call this%EventList%push_back(EventPolywrap(newEvent(subName,"wasCalled")))
+     call this%EventList%push_back(EventPolyWrap(newEvent(subName,"wasCalled")))
      
-!     print *,'reg200: ',subName,this%lastRegistration
-     ! Can we includ the calling sub here? For a better comparison with our Exp. list?
-     ! <if space in registry>
-!     this%lastRegistration = this%lastRegistration + 1
-!     this%callRegistry(this%lastRegistration) &
-!          & = newExpectation( & ! mlr todo Expectation --> foundAction -- "Result"
-!          &                  newSubject(subName), &
-!          &                  nWasCalled() )
    end subroutine registerMockCallBy_subName_
-
-!-old-!   subroutine old_verify(this)
-!-old-!      use Exception_mod
-!-old-!      class (MockRepository), intent(inout), target :: this
-!-old-!      integer iExp, iReg
-!-old-!      class (Expectation), pointer :: exp, reg
-!-old-!      logical ok
-!-old-!      integer nCalls
-!-old-!
-!-old-!      call throw('MockRepository%verify not implemented.')
-!-old-!      return
-!-old-!
-!-old-!      ! Go through expectation logic. Note:  Maybe use original list of strings approach.
-!-old-!      ! Need to work out more complex logic.  Ess. need logic analyzer.
-!-old-!      ! Eventually, expectations should probably be trees.
-!-old-!
-!-old-!      ! Maybe rework the following into "expected vs. found" for greater alignment
-!-old-!      ! with existing usage in PFUNIT.  Also consider existing capabilities in PFUNIT.
-!-old-!
-!-old-!! mlr todo -- verify should not be hardwired for the things it has to handle 
-!-old-!! todo -- refactor expectations & foundActionResult -- recall interpreter implementation
-!-old-!!
-!-old-! 
-!-old-!! TODO: move verification to the expectations themselves.
-!-old-!! cf. source/ExpectationWasCalled.F90 for a first attempt.
-!-old-!! TODO: Improve the expectation list.  Currently a 2 element array!?
-!-old-!
-!-old-!      do iExp=1,this%lastExpectation  ! 'with' syntax?
-!-old-!         exp => this%Expectations(iExp)
-!-old-!         ok = .false.
-!-old-!
-!-old-!!         if(exp%pred%name .eq. 'wasCalled')then
-!-old-!!            ok = .false.
-!-old-!!            do iReg=1,this%lastRegistration
-!-old-!!               reg = this%callRegistry(iReg)
-!-old-!!!               print *,'verify1000: ', &
-!-old-!!!                    & trim(exp%subj%name)//'='// &
-!-old-!!!                    & trim(reg%subj%name)//', '// &
-!-old-!!!                    & trim(exp%pred%name)//'='// &
-!-old-!!!                    & trim(reg%pred%name)//'.'
-!-old-!!               if(exp%subj%name .eq. reg%subj%name) then
-!-old-!!                  if(exp%pred%name .eq. reg%pred%name) then
-!-old-!!   !???               if(exp%pred .eq. reg%pred) then
-!-old-!!                     ok=.true.
-!-old-!!                  end if
-!-old-!!               end if
-!-old-!!            end do
-!-old-!!         end if
-!-old-!!
-!-old-!!         if(exp%pred%name .eq. 'wasNotCalled')then
-!-old-!!            ok = .true.
-!-old-!!            do iReg=1,this%lastRegistration
-!-old-!!               reg = this%callRegistry(iReg)
-!-old-!!               if(exp%subj%name .eq. reg%subj%name) then
-!-old-!!                  if(trim(reg%pred%name).eq.'wasCalled')then
-!-old-!!                     ok = .false.
-!-old-!!                  end if
-!-old-!!               end if
-!-old-!!            end do
-!-old-!!         end if
-!-old-!
-!-old-!         if( &
-!-old-!              & (exp%pred%name .eq. 'wasCalled') .or. &
-!-old-!              & (exp%pred%name .eq. 'wasCalledOnce') .or. &
-!-old-!              & (exp%pred%name .eq. 'wasNotCalled') &
-!-old-!              & )then
-!-old-!            ok = .true.
-!-old-!            nCalls = 0
-!-old-!            do iReg=1,this%lastRegistration
-!-old-!               reg => this%callRegistry(iReg)
-!-old-!               if(exp%subj%name .eq. reg%subj%name) then
-!-old-!                  if(trim(reg%pred%name).eq.'wasCalled')then
-!-old-!                     nCalls=nCalls+1
-!-old-!                  end if
-!-old-!               end if
-!-old-!            end do
-!-old-!            if(exp%pred%name .eq. 'wasCalled')then
-!-old-!               ok = nCalls.ge.1
-!-old-!            else if(exp%pred%name .eq. 'wasCalledOnce')then
-!-old-!               ok = nCalls.eq.1
-!-old-!            else if(exp%pred%name .eq. 'wasNotCalled')then
-!-old-!               ok = nCalls.eq.0
-!-old-!            end if
-!-old-!
-!-old-!         end if
-!-old-!
-!-old-!         if(.not.ok)then
-!-old-!            call throw('             "'// &
-!-old-!                 & trim(exp%subj%name)//'" "'//trim(exp%pred%name)//'" does not hold.')
-!-old-!         end if
-!-old-!      end do
-!-old-!
-!-old-!      ! call throw('exception%verify: Not implemented')
-!-old-!      
-!-old-!    end subroutine old_verify
 
 ! TODO: Is this the correct place to keep/use/verify expectations?  Or should we be more like
 ! exceptions?
@@ -386,72 +201,88 @@ contains
    subroutine verify(this)
       use Exception_mod
       class (MockRepository), intent(inout), target :: this
+      class (Event), pointer :: lastEvent
       class (Expectation), pointer :: exp, reg
       class (ExpectationPolyWrap), pointer :: expContainer
       type (ExpectationPolyWrapVectorIterator) :: iter
       logical ok
-      integer nCalls
-
-      ! call throw('MockRepository%verify not implemented.')
-      ! return
 
       iter = this%expectationList%begin()
-      ! If none added, no foul.
-      !if (iter == this%expectationList%end()) then
-      !   call throw('MockRepository%verify: Error: Empty expectation list!')
-      !   return
-      !end if
 
       ! Traverse store of expectations and call on their verification methods.
       ok = .true.
       do while (iter /= this%expectationList%end())
          expContainer => iter%get(); exp => expContainer%get()
-         !!! TODO: ADD EVENT LIST HERE (OR SOMEWHERE ELSE...) !!!
+
+         !print *,'2000: ',trim(exp%subj%name)//'...'//trim(exp%pred%name)
          ok = ok .and. exp%verify(this%EventList)
-         if (.not.ok) then
-            ! .not.ok => an exception was thrown by verify.
-            ! Should we retun immediately, or continue through the exceptions?
-            return
-         end if
+         !??if (.not.ok) then
+         !??   ! .not.ok => an exception was thrown by verify.
+         !??   ! Should we retun immediately, or continue through the exceptions?
+         !??   return
+         !??end if
          call iter%next()
       end do
 
       return
 
-!-old-!      ! The old new follows.
-!-old-!      
-!-old-!      do iExp=1,this%lastExpectation  ! 'with' syntax?
-!-old-!         exp => this%Expectations(iExp)
-!-old-!         ok = .false.
-!-old-!!         ok = exp%verify()
-!-old-!      end do
-
-!      call throw('EXCEPTION::MockRepository%verify: Not implemented')
-
     end subroutine verify
 
-    integer function countTimesCalled(this,subjectName) result(nCalls)
+    subroutine enableFinalVerification(this)
+      use Exception_mod
+      use Predicates_mod, only: finalVerificationEnabledMessage
       class (MockRepository), intent(inout), target :: this
-      character(*), intent(in) :: subjectName
-! multiple      integer                  :: nCalls
 
-      class (Expectation), pointer :: reg
+      ! This event should be the last one on the EventList, but we're neither
+      ! enforcing or testing this at this point.
 
-      integer :: iReg
+      call this%EventList&
+           &%push_back(EventPolyWrap(&
+           &           newEvent('MockRepository', &
+           &                    finalVerificationEnabledMessage)))
       
-      nCalls = 0
+    end subroutine enableFinalVerification
 
-      ! iReg is the "found".
-      do iReg=1,this%lastRegistration
-         reg => this%callRegistry(iReg)
-         if(subjectName .eq. reg%subj%name) then
-            if(trim(reg%pred%name).eq.'wasCalled')then
-               nCalls=nCalls+1
-            end if
+    ! Is there a better way to handle the args here?
+    !
+    subroutine verifyArguments_i1_(this,subj,i1)
+      use Exception_mod
+      class (MockRepository), intent(inout), target :: this
+      character(len=*), intent(in) :: subj
+      integer, intent(in) :: i1
+      
+      class (Event), pointer :: lastEvent
+      class (Expectation), pointer :: exp, reg
+      class (ExpectationPolyWrap), pointer :: expContainer
+      type (ExpectationPolyWrapVectorIterator) :: iter
+      logical ok
+      iter = this%expectationList%begin()
+      ! Traverse store of expectations and call on their verification methods.
+      ! Only execute those that have arguments.
+
+      !call throw('MockRepository%verifyArguments_i1_::not implemented')
+      
+      ! Iterate over expectations. Ask active ones to verify.
+      ! Wouldn't it be nicer to push the arguments onto an object and use
+      ! polymorphism to get rid of the duplicity of definitions of this
+      ! subroutine?
+      
+      ok = .true.
+      do while (iter /= this%expectationList%end())
+         expContainer => iter%get(); exp => expContainer%get()
+         !print *,'1000: ',trim(exp%subj%name)//'...'//trim(exp%pred%name)
+         if (exp%argumentsToBeVerified()) then
+            ok = ok .and. exp%verify(this%EventList,i1)
+            !print *,'1100: ',trim(exp%subj%name)//'...'//trim(exp%pred%name)
+            !?if (.not.ok) then
+            !?   ! .not.ok => an exception was thrown by verify.
+            !?   ! Should we retun immediately, or continue through the exceptions?
+            !?   return
+            !?end if
          end if
+         call iter%next()
       end do
-
-    end function countTimesCalled
-
-   
+      return
+    end subroutine verifyArguments_i1_
+    
 end module MockRepository_mod

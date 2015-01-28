@@ -5,6 +5,7 @@ module PredicateWasCalled_mod
   use EventPolyWrapVector_mod
   use Exception_mod
   use Predicate_mod
+
   implicit none
   private
 
@@ -14,7 +15,10 @@ module PredicateWasCalled_mod
   type, extends(Predicate) :: WasCalled
    contains
 !     procedure :: verifyAgainst
-     procedure :: verify => verify_WasCalled
+     procedure :: verify_ => verify_WasCalled
+     procedure :: verify_i1_ => verify_i1_WasCalled
+     !generic :: verify => verify_, verify_i1_
+     procedure :: argumentsToBeVerified => argumentsToBeVerified_
   end type WasCalled
 
 !!!! Or do we invoke the predicate from the subject?
@@ -23,11 +27,22 @@ module PredicateWasCalled_mod
      module procedure newWasCalled
   end interface WasCalled
 
+  interface verify
+     module procedure verify_WasCalled
+     module procedure verify_i1_WasCalled
+  end interface verify
+
 contains
 
   type(WasCalled) function newWasCalled() result(pred_)
     pred_%name = 'wasCalled'
   end function newWasCalled
+
+  logical function argumentsToBeVerified_(this)
+    class(WasCalled), intent(inout) :: this
+    !print *,20000,this%name
+    argumentsToBeVerified_ = .false.
+  end function argumentsToBeVerified_
 
 !  logical function verifyAgainst(this,subj_) result(ok)
 !    class(WasCalled), intent(inout) :: this
@@ -36,7 +51,13 @@ contains
 !    call throw('PredicateWasCalled%verifyAgainst::Error:NotImplemented')
 !  end function verifyAgainst
 
-
+  ! Note:  Maybe wasCalled should be hasBeenCalled to get the implications for
+  !        timing right.  Also as currently implemented, this immediately throws an
+  !        exeception if it fails, without regard to whether testing has been
+  !        completed or not.  If verify is executed by a mock during the test
+  !        and we are iterating over the expectation list, some of those predicates
+  !        should not be active until the test is over.
+  
   logical function verify_WasCalled(this,subj,eventList) result(verifiedp_)
     class (WasCalled), intent(inout) :: this
     character(*), intent(in) :: subj
@@ -50,10 +71,12 @@ contains
     
     verifiedp_ = .false.
 
+    ! Should this predicate be "WasCalledAtEnd?" as implied by the following line?
+    if (.not.finalVerificationEnabled(EventList)) return
+
 ! TODO: Go over EventList (registry) to determine if the Expectation was met.
 ! Q:  What does an expectation depend on?  Certainly the history of the run. 
 !     How about other expectations?
-    !
 
     !print *,10000
     
@@ -66,12 +89,12 @@ contains
     !end if
     
     !print *,11000
-    
+
     nCalls = 0
     do while (iter /= eventList%end())
        eventContainer => iter%get()
        event_ => eventContainer%get()
-       ! print *,11500,"'"//trim(this%name)//"'","'"//trim(event_%getMessage())//"'"
+       !print *,11500,"'"//trim(this%name)//"'","'"//trim(event_%getMessage())//"'"
        if(subj == event_%getName()) then
           if(trim(this%name) == trim(event_%getMessage()))then
              nCalls=nCalls+1
@@ -104,6 +127,17 @@ contains
     !print *,14000
 
   end function verify_WasCalled
+
+
+  logical function verify_i1_WasCalled(this,subj,eventList&
+       & ,i1 )
+    class (WasCalled), intent(inout) :: this
+    character(*), intent(in) :: subj
+    type(EventPolyWrapVector), intent(in) :: eventList
+    integer, intent(in) :: i1
+    call throw('verify_i1_::not implemented')
+    verify_i1_WasCalled = .false.
+  end function verify_i1_WasCalled
   
 
 end module PredicateWasCalled_mod

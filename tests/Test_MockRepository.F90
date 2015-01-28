@@ -101,19 +101,20 @@ contains
    subroutine method4(this,i)
      class (MockSUT_InternalDependency), intent(in) :: this
      integer, intent(in) :: i
-      call MockRepositoryPointer&
-           &%registerMockCallBy('MockSUT_InternalDependency%method4')
-! TRY: Check the argument, register, and don't save the state.
-!!!      call MockRepositoryPointer&
-!!!           &%verifyArguments('MockSUT_InternalDependency%method4',i)
-! TODO:  
-!Q?      Throw an exception -- how to unwind?  Kick back?  
-!Q?      The SUT won't know...  The mocks & the system will...  Wait for the SUT to return?
-! The following might be the way to return from the SUT.
-      if (anyExceptions()) return
+     call MockRepositoryPointer&
+          &%registerMockCallBy('MockSUT_InternalDependency%method4')
+     call MockRepositoryPointer&
+          &%verifyArguments('MockSUT_InternalDependency%method4',i)
+     
+     ! TODO:  
+     !Q?      Throw an exception -- how to unwind?  Kick back?  
+     !Q?      The SUT won't know...  The mocks & the system will...  Wait for the SUT to return?
+
+     ! The following might be the way to return from the SUT.
+     !??? if (anyExceptions()) return
 
 ! Call other stuff...
-    end subroutine method4
+   end subroutine method4
 
 
 end module MockSUT_InternalDependency_mod
@@ -177,6 +178,10 @@ contains
       call suite%addTest( &
            &   newTestMethod('testExpectMethod_ExpectedZeroCalledOnce', &
            &                  testExpectMethod_ExpectedZeroCalledOnce))
+
+      call suite%addTest ( &
+           &   newTestMethod('testArgumentConstraint1', &
+           &                  testArgumentConstraint1))
       
    end function suite
 
@@ -206,6 +211,8 @@ contains
           &   'MockSUT_InternalDependency%method1', &
           &   WasCalled()))
      call internalProcedure() ! verification is when object is final-ized
+
+     call MockRepositoryPointer%enableFinalVerification() ! Test Execution Finished...
      call MockRepositoryPointer%verify()
 
      call assertCatch('"MockSUT_InternalDependency%method1" "wasCalled" does not hold.')
@@ -237,6 +244,7 @@ contains
           &   WasCalled()))
      call internalProcedure() ! verification is when object is final-ized
 
+     call MockRepositoryPointer%enableFinalVerification() ! Test Execution Finished...
      call MockRepositoryPointer%verify()
 
    contains
@@ -263,9 +271,10 @@ contains
           & ExpectationThat( &
           &   'MockSUT_InternalDependency%method1', &
           &   WasCalled()))
-      call internalProcedure() ! verification is when object is final-ized
+     call internalProcedure() ! verification is when object is final-ized
       
-      call MockRepositoryPointer%verify()
+     call MockRepositoryPointer%enableFinalVerification() ! Test Execution Finished...
+     call MockRepositoryPointer%verify()
 
       call assertCatch('"MockSUT_InternalDependency%method1" "wasCalled" does not hold.')
 
@@ -294,6 +303,7 @@ contains
            &   WasCalledOnce()))
       call internalProcedure() ! verification is when object is final-ized
       
+      call MockRepositoryPointer%enableFinalVerification() ! Test Execution Finished...
       call MockRepositoryPointer%verify()
       
 !      call assertCatch('"MockSUT_InternalDependency%method1" "wasCalled" does not hold.')
@@ -320,6 +330,7 @@ contains
            &   WasCalledOnce()))
       call internalProcedure() ! verification is when object is final-ized
       
+      call MockRepositoryPointer%enableFinalVerification() ! Test Execution Finished...
       call MockRepositoryPointer%verify()
       
       call assertCatch('"MockSUT_InternalDependency%method1" "wasCalledOnce" does not hold.')
@@ -351,6 +362,7 @@ contains
            &   WasNotCalled()))
       call internalProcedure() ! verification is when object is final-ized
       
+      call MockRepositoryPointer%enableFinalVerification() ! Test Execution Finished...
       call MockRepositoryPointer%verify()
       
 !      call assertCatch('"MockSUT_InternalDependency%method1" "wasCalled" does not hold.')
@@ -378,6 +390,7 @@ contains
            &   WasNotCalled()))
       call internalProcedure() ! verification is when object is final-ized
       
+      call MockRepositoryPointer%enableFinalVerification() ! Test Execution Finished...
       call MockRepositoryPointer%verify()
       
 !      call assertCatch('"MockSUT_InternalDependency%method1" "wasCalled" does not hold.')
@@ -418,26 +431,21 @@ contains
 
      call MockRepositoryPointer%add( &
           & ExpectationThat( &
+          & 'MockSUT_InternalDependency%method4', &
+          & argumentsEqual(999)))
+
+     call MockRepositoryPointer%add( &
+          & ExpectationThat( &
           &   'MockSUT_InternalDependency%method4', &
           &   WasCalled()))
-
-     !!! TOD !!!
-     !call MockRepositoryPointer%addExpectationThat( &
-     !     & 'MockSUT_InternalDependency%method4', &
-     !     & wasCalledWithOnly(999) )
-
+     
      SUT_withMockedMethod = newMockSUT_InternalDependency()
-     call SUT_withMockedMethod%method4(999)
-
-     ! If an exception is caught, end NOW! Need to add some flow control here.
-     call assertTrue(catch(NULL_MESSAGE)) ! For example...
-     !??? call catchAndQuit ! Intermediate
 
      call SUT_withMockedMethod%method4(999)
-
+     
+     call MockRepositoryPointer%enableFinalVerification() ! Test Execution Finished...
+     
      call MockRepositoryPointer%verify() ! Wrap up at end of tests...
-
-     call assertCatch('"MockSUT_InternalDependency%method4" "wasCalled" does not hold.')
 
    end subroutine testArgumentConstraint1
 
@@ -467,6 +475,7 @@ contains
 
      call SUT_withMockedMethod%method4(-1)  ! Should this even be called?  If we're backing out?
 
+     call MockRepositoryPointer%enableFinalVerification() ! Test Execution Finished...
      call MockRepositoryPointer%verify() ! Wrap up at end of tests...
 
      call assertCatch('"MockSUT_InternalDependency%method4" "wasCalled" does not hold.')
