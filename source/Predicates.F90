@@ -1,3 +1,26 @@
+!-------------------------------------------------------------------------------
+! NASA/GSFC, Advanced Software Technology Group
+!-------------------------------------------------------------------------------
+!  MODULE: Predicates
+!
+!> @brief
+!! <BriefDescription>
+!!
+!! @author
+!! Mike Rilee, Rilee Systems Technologies
+!!
+!! @date
+!! 29 Jan 2015
+!! 
+!! @note <A note here.>
+!! <Or starting here...>
+!
+! REVISION HISTORY:
+!
+! 29 Jan 2015 - Added the prologue for the compliance with Doxygen. 
+!
+!-------------------------------------------------------------------------------
+
 module Predicates_mod
   
   use Predicate_mod, only: Predicate

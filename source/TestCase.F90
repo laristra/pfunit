@@ -135,6 +135,11 @@ contains
 
 !mock
       !print *,20000,this%getName()
+      ! Can we make this creation conditional on need of test?
+      ! Optional argument on the constructor for the test?
+      ! Tie it to the Test somehow so we don't need a stack of MR by themselves.
+      ! What about lazy construction?  When called...
+      ! -- mock in a self test?
       MockRepositoryPointer => newMockRepository()
       !print *,20001
 

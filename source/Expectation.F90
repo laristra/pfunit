@@ -1,3 +1,26 @@
+!-------------------------------------------------------------------------------
+! NASA/GSFC, Advanced Software Technology Group
+!-------------------------------------------------------------------------------
+!  MODULE: Expectation
+!
+!> @brief
+!! <BriefDescription>
+!!
+!! @author
+!! Mike Rilee, Rilee Systems Technologies
+!!
+!! @date
+!! 29 Jan 2015
+!! 
+!! @note <A note here.>
+!! <Or starting here...>
+!
+! REVISION HISTORY:
+!
+! 29 Jan 2015 - Added the prologue for the compliance with Doxygen. 
+!
+!-------------------------------------------------------------------------------
+
 
 ! Note: maybe have multiple expectation types for subroutines, classes, etc.
 !       Though this notion seems to have been moved to Predicates.

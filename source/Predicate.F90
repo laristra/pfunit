@@ -1,3 +1,27 @@
+!-------------------------------------------------------------------------------
+! NASA/GSFC, Advanced Software Technology Group
+!-------------------------------------------------------------------------------
+!  MODULE: Predicate
+!
+!> @brief
+!! <BriefDescription>
+!!
+!! @author
+!! Mike Rilee, Rilee Systems Technologies
+!!
+!! @date
+!! 29 Jan 2015
+!! 
+!! @note <A note here.>
+!! <Or starting here...>
+!
+! REVISION HISTORY:
+!
+! 29 Jan 2015 - Added the prologue for the compliance with Doxygen. 
+!
+!-------------------------------------------------------------------------------
+
+
 
 module Predicate_mod
   use Event_mod
@@ -14,6 +38,8 @@ module Predicate_mod
   ! Do we need a messages module?  Should this be promoted to be a predicate?
   ! Maybe the following can be made into a predicate when we have compound
   ! predicates.
+  !
+  ! How do we "chain" predicates? Maybe with boolean operators?
   !
   ! Some predicates are only active after the test execution is complete.
   !

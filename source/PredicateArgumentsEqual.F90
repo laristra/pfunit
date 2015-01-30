@@ -1,3 +1,26 @@
+!-------------------------------------------------------------------------------
+! NASA/GSFC, Advanced Software Technology Group
+!-------------------------------------------------------------------------------
+!  MODULE: PredicateArgumentsEqual
+!
+!> @brief
+!! <BriefDescription>
+!!
+!! @author
+!! Mike Rilee, Rilee Systems Technologies
+!!
+!! @date
+!! 29 Jan 2015
+!! 
+!! @note <A note here.>
+!! <Or starting here...>
+!
+! REVISION HISTORY:
+!
+! 29 Jan 2015 - Added the prologue for the compliance with Doxygen. 
+!
+!-------------------------------------------------------------------------------
+
 
 module PredicateArgumentsEqual_mod
   use Event_mod
@@ -21,6 +44,9 @@ module PredicateArgumentsEqual_mod
    contains
 !     procedure :: verifyAgainst
      procedure :: verify_ => verify_ArgumentsEqual
+     procedure :: verify_i1_ArgumentsEqual
+     procedure :: verify_r1_ArgumentsEqual
+     generic :: verify_1 => verify_i1_ArgumentsEqual, verify_r1_ArgumentsEqual
      procedure :: verify_i1_ => verify_i1_ArgumentsEqual
      procedure :: verify_r1_ => verify_r1_ArgumentsEqual
      procedure :: verify_p1_ => verify_p1_ArgumentsEqual
@@ -39,6 +65,11 @@ module PredicateArgumentsEqual_mod
      !module procedure verify_i1_ArgumentsEqual
      module procedure verify_p1_ArgumentsEqual
   end interface verify
+
+  interface verify_1a
+     module procedure :: verify_i1_ArgumentsEqual
+     module procedure :: verify_r1_ArgumentsEqual
+  end interface verify_1a
 
 contains
 
@@ -135,14 +166,20 @@ contains
     class(*), intent(in) :: p1
 
     !call throw('verify_p1_::not implemented')
-    verify_p1_ArgumentsEqual = .false.
+!    verify_p1_ArgumentsEqual = .false.
 
+!fail    verify_p1_ArgumentsEqual = verify_1a(this,subj,eventList,p1)
+
+    ! Is there a better way?  Maybe a visitor pattern?
+    
     select type(p1)
     type is (integer)
-       verify_p1_ArgumentsEqual = this%verify_i1_(subj,eventList,p1)
+       !verify_p1_ArgumentsEqual = this%verify_1(subj,eventList,p1)
+       verify_p1_ArgumentsEqual = verify_1a(this,subj,eventList,p1)
        return
     type is (real)
-       verify_p1_ArgumentsEqual = this%verify_r1_(subj,eventList,p1)
+       !verify_p1_ArgumentsEqual = this%verify_1(subj,eventList,p1)
+       verify_p1_ArgumentsEqual = verify_1a(this,subj,eventList,p1)
        return
     end select
     

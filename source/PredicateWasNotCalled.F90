@@ -1,3 +1,25 @@
+!-------------------------------------------------------------------------------
+! NASA/GSFC, Advanced Software Technology Group
+!-------------------------------------------------------------------------------
+!  MODULE: PredicateWasNotCalled
+!
+!> @brief
+!! <BriefDescription>
+!!
+!! @author
+!! Mike Rilee, Rilee Systems Technology
+!!
+!! @date
+!! 29 Jan 2015
+!! 
+!! @note <A note here.>
+!! <Or starting here...>
+!
+! REVISION HISTORY:
+!
+! 29 Jan 2015 - Added the prologue for the compliance with Doxygen. 
+!
+!-------------------------------------------------------------------------------
 
 module PredicateWasNotCalled_mod
   use Event_mod

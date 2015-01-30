@@ -1,3 +1,27 @@
+!-------------------------------------------------------------------------------
+! NASA/GSFC, Advanced Software Technology Group
+!-------------------------------------------------------------------------------
+!  MODULE: Test_MockRepository
+!
+!> @brief
+!! <BriefDescription>
+!!
+!! @author
+!! Tom Clune,  NASA/GSFC
+!!
+!! @date
+!! 29 Jan 2015
+!! 
+!! @note <A note here.>
+!! <Or starting here...>
+!
+! REVISION HISTORY:
+!
+! 29 Jan 2015 - Added the prologue for the compliance with Doxygen. 
+!
+!-------------------------------------------------------------------------------
+
+
 !#include "reflection.h"
 #define HERE print*,__LINE__,__FILE__
 
@@ -109,6 +133,8 @@ contains
 
    end subroutine method1
 
+   ! Note: Recall Beck's admonition not to mock the concrete.
+   
    subroutine method2(this)
      class (MockSUT_InternalDependency), intent(in) :: this
      call this%SUT_InternalDependency%method2()  ! SUT_InternalDependency not abstract!
@@ -126,9 +152,10 @@ contains
      class (MockSUT_InternalDependency), intent(in) :: this
      integer, intent(in) :: i
      call MockRepositoryPointer&
-          &%registerMockCallBy('MockSUT_InternalDependency%method4')
-     call MockRepositoryPointer&
-          &%verifyArguments('MockSUT_InternalDependency%method4',i)
+          &%registerMockCallBy('MockSUT_InternalDependency%method4', &
+          & i )
+!     call MockRepositoryPointer&
+!          &%verifyArguments('MockSUT_InternalDependency%method4',i)
 
      ! Note:  Since the above in unlimited polymorphic, if you have
      !        multiple arguments, then you can create an object with those
@@ -151,9 +178,9 @@ contains
      class (MockSUT_InternalDependency), intent(in) :: this
      real, intent(in) :: r
      call MockRepositoryPointer&
-          &%registerMockCallBy('MockSUT_InternalDependency%method5')
-     call MockRepositoryPointer&
-          &%verifyArguments('MockSUT_InternalDependency%method5',r)
+          &%registerMockCallBy('MockSUT_InternalDependency%method5',r)
+!     call MockRepositoryPointer&
+!          &%verifyArguments('MockSUT_InternalDependency%method5',r)
    end subroutine method5
 
 
