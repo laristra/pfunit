@@ -1,0 +1,64 @@
+#!/bin/bash
+# Little needs to be done to configure pFUnit for the build, however
+# there are several environment variables on which the package depends.
+
+echo 
+echo "**** Setting up environment for building pFUnit ****"
+echo 
+
+# F90_VENDOR - is set to include the correct makefile in $(TOP_DIR)/include,
+# i.e. GNU, Intel, NAG, or PGI.  Case insensitive file systems may cause
+# some confusion from time-to-time.
+export F90_VENDOR=Cray
+
+# F90 - is set to the Fortran compiler being used: e.g. ifort for Intel,
+# gfortran for GNU.
+export F90=ftn
+echo '  F90 = '$F90
+export CMAKE_Fortran_COMPILER=$F90
+echo '  CMAKE_Fortran_COMPILER = '$CMAKE_Fortran_COMPILER
+
+# COMPILER - is set according to F90_VENDOR and is automatically set in
+# the top level makefile.
+
+# For MPI-based unit testing, your setup may require the following as well.
+
+# MPIF90
+# $ # e.g.
+export MPIF90=ftn
+echo '  MPIF90 = '$MPIF90
+
+# As a convenience for working with multiple MPI configurations, you may
+# also set the following.
+
+# MPIRUN
+# $ # e.g.
+export MPIRUN=aprun
+echo '  MPIRUN = '$MPIRUN
+
+# PFUNIT_MAX_RANK - controls the maximum size of the arrays asserts are
+# defined over.  If PFUNIT_MAX_RANK is not set, the default is 5 and pFUnit's
+# assertions will be able to handle arrays up to rank 5.
+export PFUNIT_MAX_RANK=8
+echo '  PFUNIT_MAX_RANK = '$PFUNIT_MAX_RANK
+
+# DOXYGEN - To generate documentation, set DOXYGEN to the desired
+# executable.  NOTE: Doxygen Version 1.8.5 does not respect CamelCase
+# names from Fortran source code by currently converting all to
+# lowercase.  It does this to get HTML links correct for references in
+# the source code that also do not respect the CamelCase convention.
+# The Fortran standard specifies case insensitivity.  Doxygen 1.7.x
+# seems to better respect CamelCase.
+# $ #.e.g.
+export DOXYGEN=/usr/bin/doxygen
+echo '  DOXYGEN = '$DOXYGEN
+
+# pFUnit installation directory
+export INSTALL_PATH=/home/users/p01923/bin/pFUnit
+echo '  INSTALL_PATH = '$INSTALL_PATH
+export PFUNIT=$INSTALL_PATH
+echo '  PFUNIT = '$PFUNIT
+
+echo 
+echo "**** Done setting up environment for building pFUnit ****"
+echo 
