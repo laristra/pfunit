@@ -1,0 +1,31 @@
+Tom, we might consider putting the attached buildScripts directory at the top level of the pFUnit source tree.  To build, I did the following:
+
+p01923@swan:~> pwd
+/home/users/p01923
+p01923@swan:~> cp -R buildScripts/ berry/pFUnit-berry-branch/
+p01923@swan:~> cd berry/
+p01923@swan:~/berry> ls
+pFUnit-berry-branch  pFUnit-dev-branch
+p01923@swan:~/berry> mkdir berry-build
+p01923@swan:~/berry> cd berry-build/
+p01923@swan:~/berry/berry-build> ../pFUnit-berry-branch/buildScripts/setup-pFUnit-env 
+
+**** Setting up environment for building pFUnit ****
+
+  F90 = ftn
+  CMAKE_Fortran_COMPILER = ftn
+  MPIF90 = ftn
+  MPIRUN = aprun
+  PFUNIT_MAX_RANK = 8
+  DOXYGEN = /usr/bin/doxygen
+  INSTALL_PATH = /home/users/p01923/bin/pFUnit
+  PFUNIT = /home/users/p01923/bin/pFUnit
+
+**** Done setting up environment for building pFUnit ****
+
+p01923@swan:~/berry/berry-build> ../pFUnit-berry-branch/buildScripts/cray-compiler-cmake-mpi.sh
+
+after which “make” and “make install” complete successfully.  The same also works with buildScripts/cray-compiler-serial.sh.
+
+Damian
+
