@@ -513,8 +513,13 @@ contains
       character(len=*), parameter :: FILE_NAME = 'foo'
 
       list = newExceptionList()
+#ifndef Cray
       call list%throw('message', &
            & SourceLocation(fileName=FILE_NAME, lineNumber=2))
+#else
+      call list%throwMessage('message', &
+           & SourceLocation(fileName=FILE_NAME, lineNumber=2))
+#endif 
       anException = list%catchNext()
       call assertEqual(FILE_NAME, anException%getFileName())
 

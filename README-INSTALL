@@ -479,6 +479,8 @@ Windows/CYGWIN contributions from E. Lezar.
 
 PGI port contributions from M. Leair (PG Group).
 
+Cray port contributions:  M. Berry, D. Rouson.
+
 Other acknowledgments:  S.P. Santos (NCAR), M. Hambley (UK Met Office), J. Krishna (ANL).
 
 11. KNOWN INSTALLATIONS/VERSIONS (git cognizant from "sourceforge.net/projects/pfunit")
@@ -506,6 +508,7 @@ TBD
 
 14. REVISIONS TO THIS DOCUMENT
 
+2015-0605 Some Cray workarounds added. MLR
 2015-0508 Some PGI workarounds removed for PGI 15.4. MLR
 2015-0420 Clarified PFUNIT_MAX_ARRAY_RANK note. MLR
 2015-0320 PGI port workarounds, including examples. 3.1. MLR

@@ -18,7 +18,8 @@ assertVariants += '|IsMemberOf|Contains|Any|All|NotAll|None|IsPermutationOf'
 assertVariants += '|ExceptionRaised|SameShape|IsNaN|IsFinite'
 
 def cppSetLineAndFile(line, file):
-    return "#line " + str(line) + ' "' + file + '"\n'
+#     return "#line " + str(line) + ' "' + file + '"\n'
+     return "# " + str(line) + ' "' + file + '"\n'
 
 def getSubroutineName(line):
     try:

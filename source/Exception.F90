@@ -142,7 +142,11 @@ contains
       character(len=*), intent(in) :: message
       type (SourceLocation), optional, intent(in) :: location
 
+#ifndef Cray
       call this%throw(newException(message, location))
+#else
+      call this%throwException(newException(message, location))
+#endif
 
    end subroutine throwMessage
 
@@ -197,11 +201,17 @@ contains
             call context%labelProcess(this%exceptions(i)%message)
          end do
 
+#ifndef Cray         
          call context%gather(this%exceptions(:)%nullFlag, list%exceptions(:)%nullFlag)
          call context%gather(this%exceptions(:)%location%fileName, list%exceptions(:)%location%fileName)
          call context%gather(this%exceptions(:)%location%lineNumber, list%exceptions(:)%location%lineNumber)
          call context%gather(this%exceptions(:)%message, list%exceptions(:)%message)
-
+#else
+         call context%gatherLogical(this%exceptions(:)%nullFlag, list%exceptions(:)%nullFlag)
+         call context%gatherString(this%exceptions(:)%location%fileName, list%exceptions(:)%location%fileName)
+         call context%gatherInteger(this%exceptions(:)%location%lineNumber, list%exceptions(:)%location%lineNumber)
+         call context%gatherString(this%exceptions(:)%message, list%exceptions(:)%message)
+#endif
          call clearAll(this)
       
          if (context%isRootProcess()) then
@@ -355,6 +365,11 @@ module Exception_mod
    public :: anyErrors
    public :: clearAll
 
+#ifdef Cray
+   public :: throw_message
+   public :: catch_any
+#endif
+
    public :: initializeGlobalExceptionList
 
    type (ExceptionList) :: globalExceptionList ! private
@@ -401,7 +416,12 @@ contains
          call initializeGlobalExceptionList()
       end if
 
+#ifndef Cray
       call globalExceptionList%throw(message, location)
+#else
+      call globalExceptionList%throwMessage(message, location)
+#endif
+      
       !$omp end critical
 
    end subroutine throw_message

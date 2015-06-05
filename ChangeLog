@@ -1,5 +1,8 @@
 Note: Should add info for earlier releases.
 
+	June 5, 2015
+	- Cray workarounds on a separate branch.
+	
 	May 8, 2015
 	- PGI 15.4 enabled some workarounds to be removed.
 

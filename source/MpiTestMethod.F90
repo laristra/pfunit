@@ -60,6 +60,11 @@ module MpiTestMethod_mod
 
 contains
 
+   subroutine runMethod(this)
+      class (MpiTestMethod), intent(inout) :: this
+      call this%userMethod()
+   end subroutine runMethod
+
    function newMpiTest_basic(name, userMethod, numProcesses) result(mpiTest)
       character(len=*), intent(in) :: name
       procedure (runMethod) :: userMethod
@@ -88,11 +93,6 @@ contains
       mpiTest%userTearDown => tearDown
 
    end function newMpiTest_setUpTearDown
-
-   subroutine runMethod(this)
-      class (MpiTestMethod), intent(inout) :: this
-      call this%userMethod()
-   end subroutine runMethod
 
    subroutine setUp(this)
       class (MpiTestMethod), intent(inout) :: this

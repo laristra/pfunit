@@ -54,7 +54,11 @@ contains
       integer, allocatable :: counts(:)
 
       allocate(counts(context%getNumProcesses()))
+#ifndef Cray
       call context%gather([getNumExceptions()], counts)
+#else
+      call context%gatherInteger([getNumExceptions()], counts)
+#endif
       numExceptions = sum(counts)
 
    end function getNumExceptions_context
@@ -81,11 +85,18 @@ contains
             call context%labelProcess(localList%exceptions(i)%message)
          end do
 
+#ifndef Cray
          call context%gather(localList%exceptions(:)%nullFlag, globalList%exceptions(:)%nullFlag)
          call context%gather(localList%exceptions(:)%location%fileName, globalList%exceptions(:)%location%fileName)
          call context%gather(localList%exceptions(:)%location%lineNumber, globalList%exceptions(:)%location%lineNumber)
          call context%gather(localList%exceptions(:)%message, globalList%exceptions(:)%message)
-      
+#else
+         call context%gatherLogical(localList%exceptions(:)%nullFlag, globalList%exceptions(:)%nullFlag)
+         call context%gatherString(localList%exceptions(:)%location%fileName, globalList%exceptions(:)%location%fileName)
+         call context%gatherInteger(localList%exceptions(:)%location%lineNumber, globalList%exceptions(:)%location%lineNumber)
+         call context%gatherString(localList%exceptions(:)%message, globalList%exceptions(:)%message)
+#endif
+         
          if (context%isRootProcess()) then ! rethrow
             do i = 1, totalExceptions
                associate(e => globalList%exceptions(i))
