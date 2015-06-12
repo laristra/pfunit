@@ -96,8 +96,6 @@ if (ROBUST)
     add_definitions(-DBUILD_ROBUST)
 endif()
 
-message("compiler string (${CMAKE_Fortran_COMPILER_ID}")
-
 if (${CMAKE_Fortran_COMPILER_ID} STREQUAL "Intel")
 
     # Use ifort
@@ -142,7 +140,7 @@ elseif(${CMAKE_Fortran_COMPILER_ID} STREQUAL "Cray")
     add_definitions(-DCray)
     add_definitions(-DSTRINGIFY_SIMPLE)
     set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS_DEBUG} -O0 -g ${CMAKE_Fortran_FLAGS}")
-
+    set(OPENMP_FLAGS " ")
 
 else()
 
